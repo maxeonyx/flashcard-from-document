@@ -45,14 +45,19 @@ Flashcard From Document - A static web app that allows users to upload documents
    - Verify the deployed application works in production
    - If issues are found, fix and re-deploy immediately
    
-6. **Common Deployment Issues**
+6. **Deployment Configuration**
+   - This project uses two GitHub Actions workflows:
+     - `deploy.yml` - Our custom deployment workflow
+     - `static.yml` - GitHub's standard Pages workflow (configured for our Vue.js app)
+   - GitHub Pages must be enabled in repository Settings > Pages
+     - Source should be set to "GitHub Actions"
+   
+7. **Common Deployment Issues**
    - GitHub Actions version mismatches: Ensure all actions use latest compatible versions
    - Missing dependencies: Ensure Playwright browsers are installed with `npx playwright install --with-deps`
    - Test failures: Tests must pass for deployment to succeed
    - Build errors: Check logs for specific build failures
    - Permission issues: Ensure proper GitHub token permissions are configured
-   - GitHub Pages not enabled: Repository must have GitHub Pages enabled in Settings > Pages
-     - Set Source to "GitHub Actions"
 
 ## Commands
 
@@ -83,7 +88,8 @@ Flashcard From Document - A static web app that allows users to upload documents
 - `tsconfig.json` - TypeScript configuration
 - `playwright.config.ts` - Testing configuration
 - `vue.config.js` - Vue.js configuration
-- `.github/workflows/deploy.yml` - GitHub Actions deployment workflow
+- `.github/workflows/deploy.yml` - Our custom GitHub Actions deployment workflow
+- `.github/workflows/static.yml` - GitHub-generated workflow (configured for our Vue.js app)
 
 ### Source Code
 - `src/main.ts` - Application entry point
@@ -106,7 +112,8 @@ Flashcard From Document - A static web app that allows users to upload documents
 /
 ├── .github/                # GitHub configuration
 │   └── workflows/          # GitHub Actions workflows
-│       └── deploy.yml      # Deployment workflow
+│       ├── deploy.yml      # Our custom deployment workflow
+│       └── static.yml      # GitHub-generated workflow
 ├── public/                 # Static assets
 │   ├── favicon.ico         # Site favicon
 │   └── index.html          # HTML template
@@ -139,6 +146,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 ```
 
 ## Version History
+- 0.1.5 - Updated GitHub Pages static workflow with build and test steps
 - 0.1.4 - Added GitHub Pages configuration requirements to documentation
 - 0.1.3 - Added Playwright browser installation to CI/CD workflow
 - 0.1.2 - Fixed GitHub Actions workflow and added detailed deployment monitoring instructions
