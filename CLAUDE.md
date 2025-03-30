@@ -47,6 +47,7 @@ Flashcard From Document - A static web app that allows users to upload documents
    
 6. **Common Deployment Issues**
    - GitHub Actions version mismatches: Ensure all actions use latest compatible versions
+   - Missing dependencies: Ensure Playwright browsers are installed with `npx playwright install --with-deps`
    - Test failures: Tests must pass for deployment to succeed
    - Build errors: Check logs for specific build failures
    - Permission issues: Ensure proper GitHub token permissions are configured
@@ -136,6 +137,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 ```
 
 ## Version History
+- 0.1.3 - Added Playwright browser installation to CI/CD workflow
 - 0.1.2 - Fixed GitHub Actions workflow and added detailed deployment monitoring instructions
 - 0.1.1 - Updated CLAUDE.md with detailed development process and file structure
 - 0.1.0 - Initial project setup with Vue.js, TypeScript, and testing
