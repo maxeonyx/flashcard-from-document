@@ -51,6 +51,8 @@ Flashcard From Document - A static web app that allows users to upload documents
    - Test failures: Tests must pass for deployment to succeed
    - Build errors: Check logs for specific build failures
    - Permission issues: Ensure proper GitHub token permissions are configured
+   - GitHub Pages not enabled: Repository must have GitHub Pages enabled in Settings > Pages
+     - Set Source to "GitHub Actions"
 
 ## Commands
 
@@ -137,6 +139,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 ```
 
 ## Version History
+- 0.1.4 - Added GitHub Pages configuration requirements to documentation
 - 0.1.3 - Added Playwright browser installation to CI/CD workflow
 - 0.1.2 - Fixed GitHub Actions workflow and added detailed deployment monitoring instructions
 - 0.1.1 - Updated CLAUDE.md with detailed development process and file structure
