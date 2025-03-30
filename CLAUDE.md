@@ -40,16 +40,32 @@ Flashcard From Document - A static web app that allows users to upload documents
 5. **Deployment Process**
    - Push to GitHub to trigger the deployment workflow
    - ALWAYS monitor deployment status: `gh run list`
+   - Check detailed logs if deployment fails: `gh run view <run-id> --log`
+   - For specific failure details: `gh run view <run-id> --log-failed`
    - Verify the deployed application works in production
    - If issues are found, fix and re-deploy immediately
+   
+6. **Common Deployment Issues**
+   - GitHub Actions version mismatches: Ensure all actions use latest compatible versions
+   - Test failures: Tests must pass for deployment to succeed
+   - Build errors: Check logs for specific build failures
+   - Permission issues: Ensure proper GitHub token permissions are configured
 
 ## Commands
+
+### Development Commands
 - `npm run dev` - Start development server
 - `npm run test` - Run headless browser tests
 - `npm run build` - Build production version
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
+
+### Deployment Monitoring Commands
 - `gh run list` - Check GitHub Actions workflow status
+- `gh run view <run-id>` - View summary of a specific workflow run
+- `gh run view <run-id> --log` - View complete logs of a workflow run
+- `gh run view <run-id> --log-failed` - View only the failed steps in a workflow run
+- `gh run rerun <run-id>` - Rerun a failed workflow
 
 ## API Considerations
 - Using Anthropic API directly from browser
@@ -120,5 +136,6 @@ Flashcard From Document - A static web app that allows users to upload documents
 ```
 
 ## Version History
+- 0.1.2 - Fixed GitHub Actions workflow and added detailed deployment monitoring instructions
 - 0.1.1 - Updated CLAUDE.md with detailed development process and file structure
 - 0.1.0 - Initial project setup with Vue.js, TypeScript, and testing
