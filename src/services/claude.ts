@@ -81,10 +81,20 @@ ${documentText}`,
       if ('text' in contentBlock) {
         const content = contentBlock.text;
         
-        // Add more robust JSON extraction
-        // First try to find JSON array with standard regex
-        const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
+        // First try direct JSON parsing - this should work with the new model
+        try {
+          const cards = JSON.parse(content) as FlashcardCard[];
+          if (Array.isArray(cards) && cards.length > 0 && 
+              'question' in cards[0] && 'answer' in cards[0]) {
+            return { cards };
+          }
+        } catch (directParseError) {
+          console.error('Direct JSON parse error:', directParseError);
+          // Continue to other extraction attempts if direct parsing fails
+        }
         
+        // Try to find JSON array with standard regex
+        const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (jsonMatch) {
           try {
             const cards = JSON.parse(jsonMatch[0]) as FlashcardCard[];
@@ -116,7 +126,7 @@ ${documentText}`,
               try {
                 const parsed = JSON.parse(match);
                 if (Array.isArray(parsed) && parsed.length > 0 && 
-                    parsed[0].question && parsed[0].answer) {
+                    'question' in parsed[0] && 'answer' in parsed[0]) {
                   return { cards: parsed };
                 }
               } catch (e) {
