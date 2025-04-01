@@ -1,19 +1,35 @@
 # CLAUDE.md - Project Guidelines
 
 ## Project Overview
-Flashcard From Document - A static web app that allows users to upload documents and create flashcards using Anthropic's Claude API.
+Flashcard From Document - A static web app that allows users to upload documents and create flashcards using Anthropic's Claude API. The application is designed to be simple, efficient, and user-friendly, with all processing happening client-side for maximum privacy.
 
-## Core Features
-- Document upload and text extraction
-- Flashcard generation via Claude API
-- Local storage for API keys and flashcard sets
+## Current Features
+- Document upload and text extraction (.txt, .md, .pdf formats)
+- Intelligent flashcard generation via Claude API
+- Automatic titling of flashcard sets based on content
+- Well-formatted flashcard answers with proper line breaks
+- Local storage for API keys and flashcard sets (no server-side storage)
+- Multiple flashcard set management
+- Interactive flashcard interface with flip animation
 - Responsive design for all device types
+- Dark/light mode support through system preferences
 
-## Development principles
+## Planned Features
+- Support for more document formats (docx, epub, etc.)
+- Customizable flashcard templates
+- Spaced repetition learning system
+- Exportable flashcards (Anki, CSV)
+- Categorization and tagging of flashcard sets
+- Shareable flashcard sets via URL (no server storage)
 
-1. Create a clean, functional and minimal app.
-2. Always prefer quality. Always improve existing code. Tests make this low-risk.
-3. Claude will manage the whole development process.
+## Development Philosophy
+
+1. **Simplicity First**: Create a clean, functional, and minimal app that does one thing exceptionally well.
+2. **Quality Over Features**: Prioritize code quality and user experience over feature quantity.
+3. **Iterative Improvement**: Continuously improve existing code with small, well-tested changes.
+4. **Privacy by Design**: Keep user data local and respect privacy by avoiding server-side processing.
+5. **Accessibility**: Ensure the application is usable by people with diverse abilities and preferences.
+6. **AI-Assisted Development**: Leverage Claude for code development, testing, and improvement.
 
 ## Development Process (STRICT REQUIREMENTS)
 
@@ -56,15 +72,34 @@ Flashcard From Document - A static web app that allows users to upload documents
    - GitHub Pages must be enabled in repository Settings > Pages
      - Source should be set to "GitHub Actions"
 
-## Tech stack
+## Tech Stack
 
-- Vue.js
-- Anthropic SDK
-- TypeScript
-- GitHub actions
-- GitHub pages
+### Frontend
+- Vue.js 3 with Composition API
+- TypeScript 5.8+
+- Pinia for state management
+- Modern CSS with flexbox/grid layouts and transitions
 
-## Commands
+### API & Processing
+- Anthropic Claude API via @anthropic-ai/sdk
+- Browser File API for document handling
+- LocalStorage for client-side persistence
+
+### Development & Deployment
+- Vite/Vue CLI build system
+- ESLint for code quality
+- Playwright for end-to-end testing
+- GitHub Actions for CI/CD
+- GitHub Pages for hosting
+
+## Development Commands
+
+### Project Commands
+- `npm run serve` - Start development server
+- `npm run build` - Build production-ready assets
+- `npm run typecheck` - Run TypeScript type checking
+- `npm run lint` - Run ESLint code quality checks
+- `npm run test` - Run Playwright end-to-end tests
 
 ### Deployment Monitoring Commands
 - `gh run list` - Check GitHub Actions workflow status
@@ -73,37 +108,52 @@ Flashcard From Document - A static web app that allows users to upload documents
 - `gh run view <run-id> --log-failed` - View only the failed steps in a workflow run
 - `gh run rerun <run-id>` - Rerun a failed workflow
 
-## API Considerations
-- Using Anthropic API directly from browser 
+## API Implementation
+- Using Anthropic API directly from browser with Claude 3.5 Sonnet model
 - Secure API key handling in localStorage (never stored on server)
-- Implement rate limiting to prevent excessive API usage
+- Prompt engineering for structured JSON output with title and flashcards
+- Robust JSON parsing with multiple fallback strategies
 - Comprehensive error handling and user feedback
+- Client-side model validation and content preprocessing
 
-## Key Project Files
+## Project Architecture
 
-- `.github/workflows/static.yml` - GitHub-generated workflow (configured for our Vue.js app)
+The project follows a feature-based architecture with composables for reusable logic:
+
+### Core Organization
+- `.github/workflows/static.yml` - GitHub workflow for Pages deployment
+- `package.json` - Project dependencies and scripts
 - `src/main.ts` - Application entry point
 - `src/App.vue` - Root Vue component
-- `src/features/` - Feature-based UI components
+
+### Feature Components
+- `src/features/` - UI components organized by feature
   - `api-key/ApiKeyInput.vue` - API key management component
   - `document-upload/DocumentUploader.vue` - Document upload and processing component
   - `flashcard-display/FlashcardDisplay.vue` - Flashcard display and navigation component
-- `src/composables/` - Reusable logic hooks
-  - `useApiKey.ts` - API key management logic
-  - `useDocumentUpload.ts` - Document processing logic
-  - `useFlashcardGeneration.ts` - Claude flashcard generation logic
-  - `useFlashcards.ts` - Flashcard management logic
-  - `useLocalStorage.ts` - localStorage integration
-- `src/services/claude.ts` - Claude API integration
-- `src/types/index.ts` - TypeScript type definitions
-- `tests/app.spec.ts` - End-to-end tests
-- `public/index.html` - HTML template
-- `public/favicon.ico` - Site favicon
+
+### Logic & State Management
+- `src/composables/` - Reusable hooks following the Vue Composition API pattern
+  - `useApiKey.ts` - API key management and validation
+  - `useDocumentUpload.ts` - Document processing and text extraction
+  - `useFlashcardGeneration.ts` - Claude flashcard generation orchestration
+  - `useFlashcards.ts` - Flashcard set management and navigation
+  - `useLocalStorage.ts` - Reactive localStorage integration
+
+### Services & Types
+- `src/services/claude.ts` - Claude API integration and JSON parsing
+- `src/types/index.ts` - TypeScript interface definitions
+- `src/stores/flashcards.ts` - Pinia store for flashcard state management
+
+### Testing
+- `tests/app.spec.ts` - Playwright end-to-end tests
+- `playwright.config.ts` - Test configuration
 
 ## Version History
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.3.7 - Updated project documentation with features, architecture, and roadmap
 - 0.3.6 - Fixed flashcard display issues with answer formatting and automatic selection
 - 0.3.5 - Added automatic title generation for flashcard sets
 - 0.3.4 - Fixed JSON parsing of Claude API responses to correctly handle direct JSON output
