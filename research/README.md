@@ -18,11 +18,22 @@ The `pdf-test.ts` script attempts to:
 
 ### 2. PDF Text Extraction (Recommended Approach)
 
+Two options for text extraction:
+
+#### Option A: Using pdf-parse (may have issues):
 The `pdf-text-extraction.ts` script:
 1. Loads a PDF file from disk
-2. Extracts text using the pdf-parse library
-3. Sends the extracted text to Claude API 
+2. Extracts text using the pdf-parse library 
+3. Sends the extracted text to Claude API
 4. Processes the response to generate flashcards
+
+#### Option B: Using pdftotext/fallback (more reliable):
+The `pdf-text-extraction-fixed.ts` script:
+1. Loads a PDF file from disk
+2. First tries to extract text using the pdftotext command (requires poppler-utils)
+3. Falls back to basic extraction if pdftotext fails
+4. Sends the extracted text to Claude API
+5. Processes the response to generate flashcards
 
 ## Prerequisites
 
@@ -50,12 +61,21 @@ cd /workspaces/flashcard-from-document/research
 ANTHROPIC_API_KEY=your_api_key npm run test
 ```
 
-### PDF Text Extraction (Recommended)
+### PDF Text Extraction - Option A (pdf-parse)
 
 ```bash
 cd /workspaces/flashcard-from-document/research
 ANTHROPIC_API_KEY=your_api_key npm run test:extract
 ```
+
+### PDF Text Extraction - Option B (pdftotext/fallback)
+
+```bash
+cd /workspaces/flashcard-from-document/research
+ANTHROPIC_API_KEY=your_api_key npm run test:extract:fixed
+```
+
+This option first tries to use pdftotext (requires poppler-utils) and falls back to a basic extraction method if that fails.
 
 ## Expected Output (Text Extraction)
 
