@@ -95,6 +95,9 @@ Flashcard From Document - A static web app that allows users to upload documents
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.2.2 - Fixed ESLint dependencies for GitHub Pages deployment
+- 0.2.1 - Converted application to TypeScript and modernized Vue components
+- 0.2.0 - Implemented core flashcard generation functionality
 - 0.1.5 - Updated GitHub Pages static workflow with build and test steps
 - 0.1.4 - Added GitHub Pages configuration requirements to documentation
 - 0.1.3 - Added Playwright browser installation to CI/CD workflow
