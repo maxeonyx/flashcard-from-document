@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "pinia": "^2.1.7",
-    "vue": "~3.3.4"
+    "pinia": "~2.0.14",
+    "vue": "~3.2.47"
   },
   "devDependencies": {
     "@playwright/test": "^1.51.1",

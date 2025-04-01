@@ -104,18 +104,17 @@ Flashcard From Document - A static web app that allows users to upload documents
 ## Development Commands
 
 ### Project Commands
-- `npm run dev` - Start development server (Vite)
 - `npm run build` - Build production-ready assets
 - `npm run preview` - Preview production build locally
 - `npm run type-check` - Check TypeScript types
 - `npm run typecheck` - Alternative TypeScript check (for compatibility)
 - `npm run lint` - Run ESLint code quality checks
 - `npm run test` - Run Playwright end-to-end tests
+- Do NOT use `npm run dev`.
 
 ### Deployment Monitoring Commands
 - `gh run list` - Check GitHub Actions workflow status
-- `gh run view <run-id>` - View summary of a specific workflow run
-- `gh run view <run-id> --log` - View complete logs of a workflow run
+- `gh run watch` - View summary of a specific workflow run
 - `gh run view <run-id> --log-failed` - View only the failed steps in a workflow run
 - `gh run rerun <run-id>` - Rerun a failed workflow
 
