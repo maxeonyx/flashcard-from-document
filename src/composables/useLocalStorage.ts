@@ -1,4 +1,4 @@
-import { ref, watchEffect } from 'vue';
+import { ref, watchEffect, onMounted, onUnmounted } from 'vue';
 
 /**
  * A composable for managing values in localStorage with reactive updates
@@ -29,8 +29,8 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
     }
   });
 
-  // Listen for storage events (changes from other components)
-  window.addEventListener('storage', (event) => {
+  // Handler function for storage events
+  const handleStorageChange = (event: StorageEvent) => {
     if (event.key === key && event.newValue !== null) {
       try {
         storedValue.value = JSON.parse(event.newValue);
@@ -38,7 +38,32 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
         console.error(`Error parsing ${key} from localStorage event:`, error);
       }
     }
-  });
+  };
+
+  // Custom event for direct updates (within the same window)
+  const handleCustomStorageChange = (e: CustomEvent) => {
+    if (e.detail?.key === key) {
+      try {
+        storedValue.value = e.detail.value;
+      } catch (error) {
+        console.error(`Error handling custom storage event for ${key}:`, error);
+      }
+    }
+  };
+
+  // Add event listeners when component mounts
+  if (typeof window !== 'undefined') {
+    onMounted(() => {
+      window.addEventListener('storage', handleStorageChange);
+      window.addEventListener('localStorage-updated', handleCustomStorageChange as EventListener);
+    });
+
+    // Clean up event listeners when component unmounts
+    onUnmounted(() => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorage-updated', handleCustomStorageChange as EventListener);
+    });
+  }
 
   return storedValue;
 }

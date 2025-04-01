@@ -170,7 +170,8 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
-- 0.5.0 - Implemented key UI improvements: fixed flashcard reactivity, added bin icon for deletion, added flashcard editing, and API key onboarding flow
+- 0.5.1 - Fixed reactivity issue with flashcard sets not appearing until page reload
+- 0.5.0 - Implemented key UI improvements: added bin icon for deletion, added flashcard editing, and API key onboarding flow
 - 0.4.2 - Added version.json generation at build time and display in UI footer
 - 0.4.1 - Migrated ESLint configuration from .eslintrc.cjs to eslint.config.js (flat config)
 - 0.4.0 - Migrated build system from Vue CLI to Vite

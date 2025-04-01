@@ -11,6 +11,7 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    headless: true,
   },
   projects: [
     {
@@ -22,5 +23,9 @@ export default defineConfig({
     command: 'npm run dev',
     port: 5173,
     reuseExistingServer: !process.env.CI,
+    gracefulShutdown: {
+      signal: 'SIGTERM',
+      timeout: 1000 
+    }
   },
 });

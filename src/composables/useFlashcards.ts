@@ -38,6 +38,17 @@ export function useFlashcards() {
     flashcardSets.value = [...flashcardSets.value, newSet];
     // Automatically select the newly created set
     selectSet(newSet.id);
+    
+    // Dispatch a custom event to notify all components about the localStorage change
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('localStorage-updated', {
+        detail: {
+          key: 'flashcard-sets',
+          value: flashcardSets.value
+        }
+      }));
+    }
+    
     return newSet;
   }
   
@@ -51,6 +62,16 @@ export function useFlashcards() {
     }
     
     flashcardSets.value = flashcardSets.value.filter(set => set.id !== id);
+    
+    // Dispatch a custom event to notify all components about the localStorage change
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('localStorage-updated', {
+        detail: {
+          key: 'flashcard-sets',
+          value: flashcardSets.value
+        }
+      }));
+    }
   }
   
   function updateFlashcard(setId: string, cardId: string, question: string, answer: string): void {
@@ -77,6 +98,16 @@ export function useFlashcards() {
     
     // Update the state
     flashcardSets.value = updatedSets;
+    
+    // Dispatch a custom event to notify all components about the localStorage change
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('localStorage-updated', {
+        detail: {
+          key: 'flashcard-sets',
+          value: flashcardSets.value
+        }
+      }));
+    }
   }
   
   function prevCard(): void {
