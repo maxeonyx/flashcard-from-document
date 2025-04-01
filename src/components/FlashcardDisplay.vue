@@ -67,121 +67,103 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, computed, watch } from 'vue';
-import { useFlashcardStore } from '../stores/flashcards.js';
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { useFlashcardStore } from '../stores/flashcards';
+import type { Flashcard, FlashcardSet } from '../types';
 
-export default defineComponent({
-  name: 'FlashcardDisplay',
-  props: {
-    initialSetId: {
-      type: String,
-      default: ''
-    }
-  },
-  setup(props) {
-    const store = useFlashcardStore();
-    const selectedSetId = ref(props.initialSetId);
-    const currentCardIndex = ref(0);
-    const isFlipped = ref(false);
+const props = defineProps({
+  initialSetId: {
+    type: String as () => string,
+    default: ''
+  }
+});
+
+const store = useFlashcardStore();
+const selectedSetId = ref(props.initialSetId);
+const currentCardIndex = ref(0);
+const isFlipped = ref(false);
+
+// Get all flashcard sets from the store
+const flashcardSets = computed(() => store.flashcardSets);
+
+// Get the currently selected set
+const selectedSet = computed((): FlashcardSet | null => {
+  if (!selectedSetId.value) return null;
+  return flashcardSets.value.find(set => set.id === selectedSetId.value) || null;
+});
+
+// Get the current card
+const currentCard = computed((): Flashcard => {
+  if (!selectedSet.value) return { question: '', answer: '', id: '', createdAt: new Date() };
+  return selectedSet.value.cards[currentCardIndex.value];
+});
+
+// Select a set
+function selectSet(id: string): void {
+  selectedSetId.value = id;
+  currentCardIndex.value = 0;
+  isFlipped.value = false;
+}
+
+// Delete a set
+function deleteSet(id: string): void {
+  if (confirm('Are you sure you want to delete this flashcard set?')) {
+    store.deleteFlashcardSet(id);
     
-    // Get all flashcard sets from the store
-    const flashcardSets = computed(() => store.flashcardSets);
-    
-    // Get the currently selected set
-    const selectedSet = computed(() => {
-      if (!selectedSetId.value) return null;
-      return flashcardSets.value.find(set => set.id === selectedSetId.value) || null;
-    });
-    
-    // Get the current card
-    const currentCard = computed(() => {
-      if (!selectedSet.value) return { question: '', answer: '', id: '', createdAt: new Date() };
-      return selectedSet.value.cards[currentCardIndex.value];
-    });
-    
-    // Select a set
-    function selectSet(id) {
-      selectedSetId.value = id;
+    if (selectedSetId.value === id) {
+      selectedSetId.value = flashcardSets.value.length > 0 ? flashcardSets.value[0].id : '';
       currentCardIndex.value = 0;
       isFlipped.value = false;
     }
-    
-    // Delete a set
-    function deleteSet(id) {
-      if (confirm('Are you sure you want to delete this flashcard set?')) {
-        store.deleteFlashcardSet(id);
-        
-        if (selectedSetId.value === id) {
-          selectedSetId.value = flashcardSets.value.length > 0 ? flashcardSets.value[0].id : '';
-          currentCardIndex.value = 0;
-          isFlipped.value = false;
-        }
-      }
-    }
-    
-    // Navigate to previous card
-    function prevCard() {
-      if (currentCardIndex.value > 0) {
-        currentCardIndex.value--;
-        isFlipped.value = false;
-      }
-    }
-    
-    // Navigate to next card
-    function nextCard() {
-      if (selectedSet.value && currentCardIndex.value < selectedSet.value.cards.length - 1) {
-        currentCardIndex.value++;
-        isFlipped.value = false;
-      }
-    }
-    
-    // Flip the current card
-    function flipCard() {
-      isFlipped.value = !isFlipped.value;
-    }
-    
-    // Format date for display
-    function formatDate(date) {
-      const d = new Date(date);
-      return d.toLocaleDateString();
-    }
-    
-    // Watch for changes in flashcardSets
-    watch(flashcardSets, (newSets) => {
-      // If there are sets but none is selected, select the first one
-      if (newSets.length > 0 && !selectedSetId.value) {
-        selectedSetId.value = newSets[0].id;
-      }
-      
-      // If the selected set was deleted, select the first available set
-      if (selectedSetId.value && !newSets.find(set => set.id === selectedSetId.value)) {
-        selectedSetId.value = newSets.length > 0 ? newSets[0].id : '';
-        currentCardIndex.value = 0;
-      }
-    });
-    
-    // Watch for initialSetId changes
-    watch(() => props.initialSetId, (newId) => {
-      if (newId && flashcardSets.value.find(set => set.id === newId)) {
-        selectSet(newId);
-      }
-    });
-    
-    return {
-      flashcardSets,
-      selectedSetId,
-      selectedSet,
-      currentCardIndex,
-      currentCard,
-      isFlipped,
-      selectSet,
-      deleteSet,
-      prevCard,
-      nextCard,
-      flipCard,
-      formatDate
-    };
+  }
+}
+
+// Navigate to previous card
+function prevCard(): void {
+  if (currentCardIndex.value > 0) {
+    currentCardIndex.value--;
+    isFlipped.value = false;
+  }
+}
+
+// Navigate to next card
+function nextCard(): void {
+  if (selectedSet.value && currentCardIndex.value < selectedSet.value.cards.length - 1) {
+    currentCardIndex.value++;
+    isFlipped.value = false;
+  }
+}
+
+// Flip the current card
+function flipCard(): void {
+  isFlipped.value = !isFlipped.value;
+}
+
+// Format date for display
+function formatDate(date: Date): string {
+  const d = new Date(date);
+  return d.toLocaleDateString();
+}
+
+// Watch for changes in flashcardSets
+watch(flashcardSets, (newSets) => {
+  // If there are sets but none is selected, select the first one
+  if (newSets.length > 0 && !selectedSetId.value) {
+    selectedSetId.value = newSets[0].id;
+  }
+  
+  // If the selected set was deleted, select the first available set
+  if (selectedSetId.value && !newSets.find(set => set.id === selectedSetId.value)) {
+    selectedSetId.value = newSets.length > 0 ? newSets[0].id : '';
+    currentCardIndex.value = 0;
+  }
+});
+
+// Watch for initialSetId changes
+watch(() => props.initialSetId, (newId) => {
+  if (newId && flashcardSets.value.find(set => set.id === newId)) {
+    selectSet(newId);
   }
 });
 </script>

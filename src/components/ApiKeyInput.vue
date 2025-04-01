@@ -15,32 +15,21 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, computed } from 'vue';
-import { useFlashcardStore } from '../stores/flashcards.js';
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useFlashcardStore } from '../stores/flashcards';
 
-export default defineComponent({
-  name: 'ApiKeyInput',
-  setup() {
-    const store = useFlashcardStore();
-    const inputKey = ref('');
-    
-    const apiKey = computed(() => store.apiKey);
-    
-    function saveApiKey() {
-      if (inputKey.value.trim()) {
-        store.setApiKey(inputKey.value.trim());
-        inputKey.value = '';
-      }
-    }
-    
-    return {
-      inputKey,
-      apiKey,
-      saveApiKey
-    };
+const store = useFlashcardStore();
+const inputKey = ref('');
+
+const apiKey = computed(() => store.apiKey);
+
+function saveApiKey(): void {
+  if (inputKey.value.trim()) {
+    store.setApiKey(inputKey.value.trim());
+    inputKey.value = '';
   }
-});
+}
 </script>
 
 <style scoped>

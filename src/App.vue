@@ -19,34 +19,19 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { ref } from 'vue';
 import ApiKeyInput from './components/ApiKeyInput.vue';
 import DocumentUploader from './components/DocumentUploader.vue';
 import FlashcardDisplay from './components/FlashcardDisplay.vue';
 import pkg from '../package.json';
+import type { FlashcardSet } from './types';
 
-export default {
-  name: 'App',
-  components: {
-    ApiKeyInput,
-    DocumentUploader,
-    FlashcardDisplay
-  },
-  setup() {
-    const latestSetId = ref('');
-    const version = ref(pkg.version);
+const latestSetId = ref('');
+const version = ref(pkg.version);
 
-    function onFlashcardsGenerated(newSet) {
-      latestSetId.value = newSet.id;
-    }
-
-    return {
-      latestSetId,
-      version,
-      onFlashcardsGenerated
-    };
-  }
+function onFlashcardsGenerated(newSet: FlashcardSet) {
+  latestSetId.value = newSet.id;
 }
 </script>
 

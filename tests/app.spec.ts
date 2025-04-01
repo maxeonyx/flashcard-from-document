@@ -4,7 +4,7 @@ test('homepage has correct title and components', async ({ page }) => {
   await page.goto('/');
   
   // Assert that the page title contains the project name
-  await expect(page).toHaveTitle(/flashcard-from-document/);
+  await expect(page).toHaveTitle('Flashcard From Document');
   
   // Assert that the main title is visible
   const mainTitle = page.locator('h1');
@@ -59,6 +59,10 @@ test('document uploader shows appropriate UI states', async ({ page }) => {
   // Use the page.setInputFiles method with DataTransfer to simulate file upload
   await page.evaluate(() => {
     const uploadArea = document.querySelector('.upload-area');
+    if (!uploadArea) {
+      throw new Error('Upload area element not found');
+    }
+    
     const dataTransfer = new DataTransfer();
     
     const file = new File([new Blob(['This is a test document for flashcard generation.'])], 'test.txt', { 

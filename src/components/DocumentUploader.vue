@@ -40,160 +40,142 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref, computed } from 'vue';
-import { useFlashcardStore } from '../stores/flashcards.js';
-import { ClaudeService } from '../services/claude.js';
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { useFlashcardStore } from '../stores/flashcards';
+import { ClaudeService } from '../services/claude';
+import type { FlashcardSet } from '../types';
 
-export default defineComponent({
-  name: 'DocumentUploader',
-  emits: ['flashcardsGenerated'],
-  setup(props, { emit }) {
-    const store = useFlashcardStore();
-    const documentContent = ref('');
-    const fileName = ref('');
-    const isHighlighted = ref(false);
-    const isGenerating = ref(false);
-    const error = ref('');
+const emit = defineEmits<{
+  (e: 'flashcardsGenerated', newSet: FlashcardSet): void
+}>();
 
-    const documentPreview = computed(() => {
-      if (!documentContent.value) return '';
-      return documentContent.value.length > 500 
-        ? documentContent.value.substring(0, 500) + '...' 
-        : documentContent.value;
-    });
+const store = useFlashcardStore();
+const documentContent = ref('');
+const fileName = ref('');
+const isHighlighted = ref(false);
+const isGenerating = ref(false);
+const error = ref('');
 
-    const documentStats = computed(() => {
-      if (!documentContent.value) return '';
-      
-      const wordCount = documentContent.value.split(/\s+/).filter(Boolean).length;
-      const charCount = documentContent.value.length;
-      
-      return `${wordCount} words, ${charCount} characters`;
-    });
-
-    const canGenerate = computed(() => {
-      return !!store.apiKey && !!documentContent.value;
-    });
-
-    function highlightDrop() {
-      isHighlighted.value = true;
-    }
-
-    function unhighlightDrop() {
-      isHighlighted.value = false;
-    }
-
-    async function handleTextFile(file) {
-      const text = await file.text();
-      documentContent.value = text;
-      fileName.value = file.name;
-    }
-
-    function handleDrop(e) {
-      unhighlightDrop();
-      
-      if (!e.dataTransfer?.files.length) return;
-      
-      const file = e.dataTransfer.files[0];
-      processFile(file);
-    }
-
-    function handleFileSelect(e) {
-      const target = e.target;
-      if (!target.files?.length) return;
-      
-      const file = target.files[0];
-      processFile(file);
-    }
-
-    function processFile(file) {
-      const fileType = file.name.split('.').pop()?.toLowerCase();
-      
-      if (fileType === 'txt' || fileType === 'md') {
-        handleTextFile(file);
-      } else if (fileType === 'pdf') {
-        error.value = "PDF parsing is not supported in this version. Please upload a text file.";
-      } else {
-        error.value = "Unsupported file format. Please upload a .txt or .md file.";
-      }
-    }
-
-    function clearDocument() {
-      documentContent.value = '';
-      fileName.value = '';
-      error.value = '';
-    }
-
-    async function generateFlashcards() {
-      if (!canGenerate.value) {
-        error.value = !store.apiKey 
-          ? "Please set your Claude API key first" 
-          : "Please upload a document first";
-        return;
-      }
-
-      error.value = '';
-      isGenerating.value = true;
-      
-      try {
-        const claudeService = new ClaudeService(store.apiKey);
-        const result = await claudeService.generateFlashcards(documentContent.value);
-        
-        if (result.error) {
-          error.value = result.error;
-          return;
-        }
-        
-        if (result.cards.length === 0) {
-          error.value = "No flashcards could be generated. Try a different document.";
-          return;
-        }
-        
-        // Process the cards and add IDs and creation dates
-        const flashcards = result.cards.map(card => ({
-          id: crypto.randomUUID(),
-          question: card.question,
-          answer: card.answer,
-          createdAt: new Date()
-        }));
-        
-        // Save the flashcard set
-        const newSet = store.addFlashcardSet({
-          name: fileName.value || 'Untitled Set',
-          cards: flashcards
-        });
-        
-        // Emit event with the new set
-        emit('flashcardsGenerated', newSet);
-        
-        // Clear the document input
-        clearDocument();
-      } catch (err) {
-        error.value = err instanceof Error ? err.message : 'An unknown error occurred';
-      } finally {
-        isGenerating.value = false;
-      }
-    }
-
-    return {
-      documentContent,
-      fileName,
-      isHighlighted,
-      isGenerating,
-      error,
-      documentPreview,
-      documentStats,
-      canGenerate,
-      highlightDrop,
-      unhighlightDrop,
-      handleDrop,
-      handleFileSelect,
-      clearDocument,
-      generateFlashcards
-    };
-  }
+const documentPreview = computed(() => {
+  if (!documentContent.value) return '';
+  return documentContent.value.length > 500 
+    ? documentContent.value.substring(0, 500) + '...' 
+    : documentContent.value;
 });
+
+const documentStats = computed(() => {
+  if (!documentContent.value) return '';
+  
+  const wordCount = documentContent.value.split(/\s+/).filter(Boolean).length;
+  const charCount = documentContent.value.length;
+  
+  return `${wordCount} words, ${charCount} characters`;
+});
+
+const canGenerate = computed(() => {
+  return !!store.apiKey && !!documentContent.value;
+});
+
+function highlightDrop(): void {
+  isHighlighted.value = true;
+}
+
+function unhighlightDrop(): void {
+  isHighlighted.value = false;
+}
+
+async function handleTextFile(file: File): Promise<void> {
+  const text = await file.text();
+  documentContent.value = text;
+  fileName.value = file.name;
+}
+
+function handleDrop(e: DragEvent): void {
+  unhighlightDrop();
+  
+  if (!e.dataTransfer?.files.length) return;
+  
+  const file = e.dataTransfer.files[0];
+  processFile(file);
+}
+
+function handleFileSelect(e: Event): void {
+  const target = e.target as HTMLInputElement;
+  if (!target.files?.length) return;
+  
+  const file = target.files[0];
+  processFile(file);
+}
+
+function processFile(file: File): void {
+  const fileType = file.name.split('.').pop()?.toLowerCase();
+  
+  if (fileType === 'txt' || fileType === 'md') {
+    handleTextFile(file);
+  } else if (fileType === 'pdf') {
+    error.value = "PDF parsing is not supported in this version. Please upload a text file.";
+  } else {
+    error.value = "Unsupported file format. Please upload a .txt or .md file.";
+  }
+}
+
+function clearDocument(): void {
+  documentContent.value = '';
+  fileName.value = '';
+  error.value = '';
+}
+
+async function generateFlashcards(): Promise<void> {
+  if (!canGenerate.value) {
+    error.value = !store.apiKey 
+      ? "Please set your Claude API key first" 
+      : "Please upload a document first";
+    return;
+  }
+
+  error.value = '';
+  isGenerating.value = true;
+  
+  try {
+    const claudeService = new ClaudeService(store.apiKey);
+    const result = await claudeService.generateFlashcards(documentContent.value);
+    
+    if (result.error) {
+      error.value = result.error;
+      return;
+    }
+    
+    if (result.cards.length === 0) {
+      error.value = "No flashcards could be generated. Try a different document.";
+      return;
+    }
+    
+    // Process the cards and add IDs and creation dates
+    const flashcards = result.cards.map(card => ({
+      id: crypto.randomUUID(),
+      question: card.question,
+      answer: card.answer,
+      createdAt: new Date()
+    }));
+    
+    // Save the flashcard set
+    const newSet = store.addFlashcardSet({
+      name: fileName.value || 'Untitled Set',
+      cards: flashcards
+    });
+    
+    // Emit event with the new set
+    emit('flashcardsGenerated', newSet);
+    
+    // Clear the document input
+    clearDocument();
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'An unknown error occurred';
+  } finally {
+    isGenerating.value = false;
+  }
+}
 </script>
 
 <style scoped>
