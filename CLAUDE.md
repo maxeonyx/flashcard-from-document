@@ -104,6 +104,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.3.5 - Added automatic title generation for flashcard sets
 - 0.3.4 - Fixed JSON parsing of Claude API responses to correctly handle direct JSON output
 - 0.3.3 - Updated Claude model to claude-3-5-sonnet-20241022 to fix API compatibility issue
 - 0.3.2 - Fixed JSON parsing from Claude responses and improved prompt for better flashcard generation

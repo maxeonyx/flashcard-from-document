@@ -6,6 +6,7 @@ export interface FlashcardCard {
 }
 
 export interface FlashcardGenerationResult {
+  title: string;
   cards: FlashcardCard[];
   error?: string;
 }
@@ -41,6 +42,7 @@ export class ClaudeService {
   async generateFlashcards(documentText: string): Promise<FlashcardGenerationResult> {
     if (!this.client) {
       return {
+        title: '',
         cards: [],
         error: 'API key not set. Please set your Claude API key in the settings.'
       };
@@ -55,20 +57,23 @@ export class ClaudeService {
             role: 'user',
             content: `Create flashcards from this document text. Extract the key concepts and create question-answer pairs.
 
-IMPORTANT: Your entire response must be valid JSON that I can parse with JSON.parse(). Respond with ONLY a JSON array containing objects with "question" and "answer" fields like this:
+IMPORTANT: Your entire response must be valid JSON that I can parse with JSON.parse(). Respond with ONLY a JSON object containing a "title" string field and a "cards" array field that contains objects with "question" and "answer" fields like this:
 
-[
-  {
-    "question": "What is...",
-    "answer": "It is..."
-  },
-  {
-    "question": "How does...",
-    "answer": "It works by..."
-  }
-]
+{
+  "title": "A descriptive title for this flashcard set",
+  "cards": [
+    {
+      "question": "What is...",
+      "answer": "It is..."
+    },
+    {
+      "question": "How does...",
+      "answer": "It works by..."
+    }
+  ]
+}
 
-Do not include any explanations, markdown formatting, or non-JSON text in your response.
+The title should be concise (3-6 words) and descriptive of the document's content. Do not include any explanations, markdown formatting, or non-JSON text in your response.
 
 Document text:
 ${documentText}`,
@@ -83,22 +88,58 @@ ${documentText}`,
         
         // First try direct JSON parsing - this should work with the new model
         try {
-          const cards = JSON.parse(content) as FlashcardCard[];
-          if (Array.isArray(cards) && cards.length > 0 && 
-              'question' in cards[0] && 'answer' in cards[0]) {
-            return { cards };
+          const result = JSON.parse(content);
+          // New format with title and cards
+          if (typeof result === 'object' && result !== null && 
+              'title' in result && 'cards' in result && 
+              Array.isArray(result.cards) && result.cards.length > 0 && 
+              'question' in result.cards[0] && 'answer' in result.cards[0]) {
+            return { 
+              title: result.title,
+              cards: result.cards
+            };
+          }
+          // Legacy format with just an array of cards
+          else if (Array.isArray(result) && result.length > 0 && 
+              'question' in result[0] && 'answer' in result[0]) {
+            return { 
+              title: 'Untitled Flashcard Set',
+              cards: result 
+            };
           }
         } catch (directParseError) {
           console.error('Direct JSON parse error:', directParseError);
           // Continue to other extraction attempts if direct parsing fails
         }
         
-        // Try to find JSON array with standard regex
+        // Try to find JSON object with title and cards
+        const objectMatch = content.match(/\{[\s\S]*"title"[\s\S]*"cards"[\s\S]*\}/);
+        if (objectMatch) {
+          try {
+            const result = JSON.parse(objectMatch[0]);
+            if (typeof result === 'object' && result !== null && 
+                'title' in result && 'cards' in result && 
+                Array.isArray(result.cards)) {
+              return { 
+                title: result.title,
+                cards: result.cards
+              };
+            }
+          } catch (parseError) {
+            console.error('JSON object parse error:', parseError);
+            // Continue to other extraction attempts
+          }
+        }
+        
+        // Try to find JSON array with standard regex (legacy format)
         const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
         if (jsonMatch) {
           try {
             const cards = JSON.parse(jsonMatch[0]) as FlashcardCard[];
-            return { cards };
+            return { 
+              title: 'Untitled Flashcard Set',
+              cards 
+            };
           } catch (parseError) {
             console.error('JSON parse error:', parseError);
             // Continue to other extraction attempts
@@ -109,15 +150,31 @@ ${documentText}`,
         const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (codeBlockMatch && codeBlockMatch[1]) {
           try {
-            const cards = JSON.parse(codeBlockMatch[1]) as FlashcardCard[];
-            return { cards };
+            const result = JSON.parse(codeBlockMatch[1]);
+            // Check if it's the new format with title and cards
+            if (typeof result === 'object' && result !== null && 
+                'title' in result && 'cards' in result && 
+                Array.isArray(result.cards)) {
+              return { 
+                title: result.title,
+                cards: result.cards
+              };
+            }
+            // Legacy format with just an array of cards
+            else if (Array.isArray(result) && result.length > 0 && 
+                'question' in result[0] && 'answer' in result[0]) {
+              return { 
+                title: 'Untitled Flashcard Set',
+                cards: result 
+              };
+            }
           } catch (parseError) {
             console.error('Code block JSON parse error:', parseError);
             // Continue to other extraction attempts
           }
         }
         
-        // Last resort - try to extract any valid JSON array in the content
+        // Last resort - try to extract any valid JSON array in the content (legacy format)
         try {
           // Look for array of objects pattern more liberally
           const matches = content.match(/\[[\s\S]*?\]/g);
@@ -127,7 +184,10 @@ ${documentText}`,
                 const parsed = JSON.parse(match);
                 if (Array.isArray(parsed) && parsed.length > 0 && 
                     'question' in parsed[0] && 'answer' in parsed[0]) {
-                  return { cards: parsed };
+                  return { 
+                    title: 'Untitled Flashcard Set',
+                    cards: parsed 
+                  };
                 }
               } catch (e) {
                 // Try next match
@@ -136,17 +196,20 @@ ${documentText}`,
           }
           
           return {
+            title: '',
             cards: [],
             error: 'Could not extract valid flashcard JSON from Claude response.'
           };
         } catch (parseError) {
           return {
+            title: '',
             cards: [],
             error: 'Failed to parse JSON from Claude response.'
           };
         }
       } else {
         return {
+          title: '',
           cards: [],
           error: 'Could not extract text from Claude response.'
         };
@@ -155,6 +218,7 @@ ${documentText}`,
       // Avoid console.error in production
       const errorMessage = error instanceof Error ? error.message : String(error);
       return {
+        title: '',
         cards: [],
         error: `Error: ${errorMessage}`
       };

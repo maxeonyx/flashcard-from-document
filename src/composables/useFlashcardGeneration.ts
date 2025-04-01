@@ -49,9 +49,9 @@ export function useFlashcardGeneration() {
         createdAt: new Date()
       }));
       
-      // Save the flashcard set
+      // Save the flashcard set with the generated title or fallback to filename
       const newSet = addFlashcardSet({
-        name: fileName || 'Untitled Set',
+        name: result.title || fileName || 'Untitled Set',
         cards: flashcards
       });
       
