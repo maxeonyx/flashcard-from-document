@@ -15,12 +15,19 @@ Flashcard From Document - A static web app that allows users to upload documents
 - Dark/light mode support through system preferences
 
 ## Planned Features
+
+### Functionality Enhancements
 - Support for more document formats (docx, epub, etc.)
 - Customizable flashcard templates
 - Spaced repetition learning system
 - Exportable flashcards (Anki, CSV)
 - Categorization and tagging of flashcard sets
 - Shareable flashcard sets via URL (no server storage)
+
+### Technical Improvements
+- Update to modern ESLint flat configuration
+- Performance optimizations for larger flashcard sets
+- Upgrade to latest Vite and Vue versions
 
 ## Development Philosophy
 
@@ -53,6 +60,8 @@ Flashcard From Document - A static web app that allows users to upload documents
      - Minor: New features
      - Patch: Bug fixes
    - Display version is shown to users, so this is REQUIRED
+   - Summarize the changed files and tests written to the user
+   - Ask the user whether there is more to do, to commit and continue development, or commit and push/deploy
 
    There are no commit message requirements.
 
@@ -86,7 +95,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 - LocalStorage for client-side persistence
 
 ### Development & Deployment
-- Vite/Vue CLI build system
+- Vite build system
 - ESLint for code quality
 - Playwright for end-to-end testing
 - GitHub Actions for CI/CD
@@ -95,9 +104,11 @@ Flashcard From Document - A static web app that allows users to upload documents
 ## Development Commands
 
 ### Project Commands
-- `npm run serve` - Start development server
+- `npm run dev` - Start development server (Vite)
 - `npm run build` - Build production-ready assets
-- `npm run typecheck` - Run TypeScript type checking
+- `npm run preview` - Preview production build locally
+- `npm run type-check` - Check TypeScript types
+- `npm run typecheck` - Alternative TypeScript check (for compatibility)
 - `npm run lint` - Run ESLint code quality checks
 - `npm run test` - Run Playwright end-to-end tests
 
@@ -126,6 +137,19 @@ The project follows a feature-based architecture with composables for reusable l
 - `src/main.ts` - Application entry point
 - `src/App.vue` - Root Vue component
 
+### Configuration Files
+- `.eslintrc.cjs` - ESLint configuration (CommonJS format for compatibility)
+- `tsconfig.json` - TypeScript project configuration
+- `tsconfig.app.json` - TypeScript configuration for the Vue application
+- `tsconfig.node.json` - TypeScript configuration for Node.js environment
+- `vite.config.ts` - Vite bundler configuration
+- `playwright.config.ts` - End-to-end testing configuration
+- `env.d.ts` - TypeScript declarations for Vite environment
+
+> **Note:** The project has been migrated from Vue CLI to Vite.
+> ESLint is currently using the `.eslintrc.cjs` format, but a future update
+> may migrate to the newer flat configuration format.
+
 ### Feature Components
 - `src/features/` - UI components organized by feature
   - `api-key/ApiKeyInput.vue` - API key management component
@@ -153,6 +177,8 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.4.0 - Migrated build system from Vue CLI to Vite
+- 0.3.8 - Enhanced pre-commit process with user interaction and decision points
 - 0.3.7 - Updated project documentation with features, architecture, and roadmap
 - 0.3.6 - Fixed flashcard display issues with answer formatting and automatic selection
 - 0.3.5 - Added automatic title generation for flashcard sets
