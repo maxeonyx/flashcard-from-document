@@ -103,6 +103,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.3.2 - Fixed JSON parsing from Claude responses and improved prompt for better flashcard generation
 - 0.3.1 - Fixed Anthropic API browser compatibility by adding dangerouslyAllowBrowser option
 - 0.3.0 - Major refactoring: Reorganized project structure with feature-based folders, added composables, improved loading states, and accessibility
 - 0.2.2 - Fixed ESLint dependencies for GitHub Pages deployment
