@@ -1,0 +1,607 @@
+# Configuration Files
+
+You can use configuration files with ESLint to specify configuration information for an entire directory and all of its subdirectories. This can be useful for:
+
+* Enforcing coding conventions across projects
+* Sharing settings with multiple people and projects
+* Enforcing different coding standards based on specific files or directories
+
+There are two ways to use configuration files with ESLint:
+
+* Configuration Files: Use a JavaScript, JSON, or YAML file to specify configuration information.
+* Configuration Comments: Use JavaScript comments embedded in your source code to specify configuration information.
+
+## Introduction
+
+ESLint has built-in support for enabling and disabling rules based on file patterns and directories, making it easy to use different rules for different files. ESLint resolves configuration settings using a hierarchical approach, allowing for very fine-grained configuration.
+
+### Example
+
+Here's a simple example of how ESLint configuration works:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        ignores: ["**/dist/**"],
+    },
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error",
+            "prefer-const": "error"
+        }
+    },
+    {
+        files: ["**/*.ts"],
+        rules: {
+            semi: "error",
+            "prefer-const": "error",
+            "@typescript-eslint/strict-boolean-expressions": "error"
+        }
+    }
+];
+```
+
+This configuration file does the following:
+
+1. Sets up a configuration that ignores all files in any `dist` directory
+2. A JavaScript-specific configuration that requires semicolons and `const` declarations
+3. A TypeScript-specific configuration that adds a TypeScript-specific rule
+
+ESLint looks at each file being linted and determines which configurations apply based on the globs in `files` and `ignores` properties. If there are multiple matches, ESLint will merge the configurations.
+
+## Using Configuration Files
+
+ESLint looks for configuration files in three locations:
+
+1. Custom locations specified with the `--config` command line option
+2. The current working directory where the ESLint CLI is executed
+3. The directory hierarchy, starting from the current working directory up to the root directory
+
+ESLint automatically looks for a configuration file called one of:
+
+* `eslint.config.js`
+* `eslint.config.mjs`
+* `eslint.config.cjs`
+
+### Specifying Files and Ignores
+
+The `files` and `ignores` properties use glob patterns to match files:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        files: ["src/**/*.js"],
+        ignores: ["**/*.config.js", "**/dist/**"],
+        rules: {
+            "no-console": "warn"
+        }
+    }
+];
+```
+
+This configuration:
+* Applies to all JS files in the `src` directory
+* Ignores any file ending with `.config.js`
+* Ignores any file in a `dist` directory
+
+### File Extension Defaults
+
+By default, ESLint searches for files with these extensions:
+
+* `.js`
+* `.mjs`
+* `.cjs`
+
+To add additional extensions:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        files: ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+```
+
+## Configuration Objects
+
+Each configuration object in the exported array can have these properties:
+
+* `name` - An identifier for the configuration (optional)
+* `files` - File patterns to include
+* `ignores` - File patterns to exclude
+* `languageOptions` - Linting environment settings
+* `linterOptions` - Options for the linting process
+* `processor` - A plugin processor to extract/modify JavaScript
+* `plugins` - Additional rules/processors
+* `rules` - Rule configurations
+* `settings` - Information passed to all rules
+
+Here's an example showing a complete configuration object:
+
+```javascript
+// eslint.config.js
+import globals from "globals";
+import eslintPlugin from "eslint-plugin-example";
+import myCustomProcessor from "./processor.js";
+
+export default [
+    {
+        name: "global-config",
+        
+        // files and ignores
+        files: ["**/*.js"],
+        ignores: ["**/node_modules/**"],
+        
+        // language options
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: "module",
+            globals: {
+                ...globals.browser
+            },
+            parser: "@babel/eslint-parser",
+            parserOptions: {
+                requireConfigFile: false
+            }
+        },
+        
+        // linter options
+        linterOptions: {
+            reportUnusedDisableDirectives: true
+        },
+        
+        // processor
+        processor: myCustomProcessor,
+        
+        // plugins
+        plugins: {
+            example: eslintPlugin,
+        },
+        
+        // rules
+        rules: {
+            semi: "error",
+            "example/custom-rule": "error"
+        },
+        
+        // custom settings
+        settings: {
+            sharedData: "Hello"
+        }
+    }
+];
+```
+
+### Using `name`
+
+The `name` property helps identify configurations when conflicts occur:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        name: "base-config",
+        files: ["**/*.js"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+```
+
+### Using `files` and `ignores`
+
+The `files` and `ignores` properties determine which files a configuration applies to:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        files: ["**/*.js"],
+        ignores: ["**/node_modules/**"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+```
+
+Both properties use glob patterns:
+* `*` matches any string in a single path segment
+* `**` matches zero or more path segments
+* `?` matches any single character
+* `[...]` matches a range of characters
+* `!(...)` matches anything that doesn't match the patterns
+* `?(...)` matches zero or one occurrence
+* `+(...)` matches one or more occurrences
+* `*(...)` matches zero or more occurrences
+* `@(...)` matches exactly one occurrence
+* `{...}` matches any of the patterns
+
+### Using `languageOptions`
+
+The `languageOptions` property configures how JavaScript is interpreted:
+
+```javascript
+// eslint.config.js
+import globals from "globals";
+
+export default [
+    {
+        files: ["**/*.js"],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: "module",
+            globals: {
+                ...globals.browser
+            },
+            parser: "@babel/eslint-parser",
+            parserOptions: {
+                requireConfigFile: false
+            }
+        }
+    }
+];
+```
+
+It supports:
+* `ecmaVersion` - The JavaScript version (e.g., 2015, 2020, "latest")
+* `sourceType` - JavaScript source type ("script" or "module")
+* `globals` - Global variables available in the code
+* `parser` - A custom parser to use
+* `parserOptions` - Options for the parser
+
+### Using `linterOptions`
+
+The `linterOptions` property configures linting behavior:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        files: ["**/*.js"],
+        linterOptions: {
+            noInlineConfig: true,
+            reportUnusedDisableDirectives: true
+        }
+    }
+];
+```
+
+Available options:
+* `noInlineConfig` - Disables inline configuration comments
+* `reportUnusedDisableDirectives` - Reports unused disable directives
+
+### Using `processor`
+
+The `processor` property specifies a processor to extract JavaScript:
+
+```javascript
+// eslint.config.js
+import markdownPlugin from "eslint-plugin-markdown";
+
+export default [
+    {
+        files: ["**/*.md"],
+        processor: markdownPlugin.processors.markdown
+    }
+];
+```
+
+### Using `plugins`
+
+The `plugins` property adds plugins to a configuration:
+
+```javascript
+// eslint.config.js
+import jsdoc from "eslint-plugin-jsdoc";
+import node from "eslint-plugin-node";
+
+export default [
+    {
+        files: ["**/*.js"],
+        plugins: {
+            jsdoc,
+            node
+        }
+    }
+];
+```
+
+### Using `rules`
+
+The `rules` property specifies which rules to use:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error",
+            "prefer-const": "error"
+        }
+    }
+];
+```
+
+Rule settings can be:
+* `"off"` or `0` - Turn the rule off
+* `"warn"` or `1` - Turn the rule on as a warning
+* `"error"` or `2` - Turn the rule on as an error
+* Arrays like `["error", "option1", "option2"]` - The rule plus configuration options
+
+For plugin rules, include the plugin name:
+
+```javascript
+// eslint.config.js
+import jsdocPlugin from "eslint-plugin-jsdoc";
+
+export default [
+    {
+        files: ["**/*.js"],
+        plugins: {
+            jsdoc: jsdocPlugin
+        },
+        rules: {
+            "jsdoc/require-description": "error"
+        }
+    }
+];
+```
+
+### Using `settings`
+
+The `settings` property provides information to all rules:
+
+```javascript
+// eslint.config.js
+export default [
+    {
+        files: ["**/*.js"],
+        settings: {
+            sharedData: "Hello",
+            'import/resolver': {
+                node: {
+                    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+                },
+            },
+        }
+    }
+];
+```
+
+## Extending Configurations
+
+Configurations can be extended using the `extends` property:
+
+```javascript
+// eslint.config.js
+import someConfig from "eslint-config-some-config";
+import stylistic from "@stylistic/eslint-config";
+
+export default [
+    {
+        files: ["**/*.js"],
+        extends: [
+            someConfig,
+            stylistic.configs.customize({
+                semi: true,
+                braceStyle: "1tbs"
+            })
+        ]
+    }
+];
+```
+
+The `extends` property accepts:
+* Arrays of configuration objects
+* Single configuration objects
+* Functions that return configuration objects
+
+### How Extending Works
+
+When configurations are extended:
+1. The extending config's values are used as the base
+2. Each extended config's values are merged one at a time
+3. Complex properties like `rules` are merged recursively
+4. Array properties like `files` are replaced, not merged
+
+## Using TypeScript
+
+For TypeScript configuration files:
+
+```typescript
+// eslint.config.ts
+import { Linter } from "eslint";
+
+const config: Linter.Config[] = [
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+
+export default config;
+```
+
+To use TypeScript configuration files, install `jiti`:
+
+```
+npm install jiti --save-dev
+```
+
+## Using JavaScript Modules
+
+ESLint supports both CommonJS and ES modules for configuration:
+
+```javascript
+// eslint.config.mjs (ES modules)
+export default [
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+```
+
+```javascript
+// eslint.config.cjs (CommonJS)
+module.exports = [
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+```
+
+## Predefined Configurations
+
+ESLint provides three predefined configurations:
+
+### eslint:recommended
+
+```javascript
+// eslint.config.js
+import js from "@eslint/js";
+
+export default [
+    js.configs.recommended,
+    {
+        files: ["**/*.js"],
+        rules: {
+            "no-unused-vars": "warn"
+        }
+    }
+];
+```
+
+### eslint:all
+
+```javascript
+// eslint.config.js
+import js from "@eslint/js";
+
+export default [
+    js.configs.all,
+    {
+        files: ["**/*.js"],
+        rules: {
+            "no-unused-vars": "warn"
+        }
+    }
+];
+```
+
+### eslint:flat-config-recommended
+
+For flat config validation:
+
+```javascript
+import recommended from '@eslint/js/package.json' assert { type: 'json' };
+export default recommended;
+```
+
+## Configuration Comments
+
+You can use JavaScript comments to configure ESLint directly in your code:
+
+```javascript
+/* eslint semi: "error" */
+/* eslint-disable */
+/* eslint-enable */
+/* eslint-disable no-alert, no-console */
+/* eslint-enable no-alert, no-console */
+/* eslint-disable-line */
+/* eslint-disable-next-line */
+// eslint-disable-line
+// eslint-disable-next-line
+```
+
+## Global Comments
+
+You can specify globals in your code:
+
+```javascript
+/* global var1, var2 */
+/* global var1:writable, var2:readonly */
+```
+
+## Parser Comments
+
+You can specify a parser in your code:
+
+```javascript
+/* eslint-env es2022 */
+/* eslint-env es2022, browser */
+```
+
+## Using defineConfig Helper
+
+ESLint provides a `defineConfig` helper for type checking:
+
+```javascript
+// eslint.config.js
+import { defineConfig } from "eslint";
+
+export default defineConfig([
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error"
+        }
+    }
+]);
+```
+
+## Migrating from Legacy Config
+
+For migrating from legacy `.eslintrc.*` files:
+
+```javascript
+// eslint.config.js
+import eslintrcPlugin from '@eslint/eslintrc';
+import anyEslintrcConfig from './any-eslintrc-file.json' assert { type: 'json' };
+
+const { FlatCompat } = eslintrcPlugin;
+const compat = new FlatCompat();
+
+export default [
+    ...compat.config(anyEslintrcConfig),
+    
+    // Other configs...
+    {
+        files: ["**/*.js"],
+        rules: {
+            semi: "error"
+        }
+    }
+];
+```
+
+## Notes on Migrating to Flat Config
+
+Important migration notes:
+* New format is called "flat config"
+* `extends` works differently and accepts objects/arrays/functions
+* `overrides` is replaced by multiple config objects
+* `env` is replaced by `languageOptions.globals`
+* File extensions are no longer automatically recognized
+* Default files pattern is more restrictive
+* Predefined configs from `@eslint/js`
+* `--no-eslintrc` is no longer needed
+
+For a full migration guide, see [Migrating to Flat Config](https://eslint.org/docs/latest/use/migrate-to-eslint-v9)
