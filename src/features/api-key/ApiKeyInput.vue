@@ -10,26 +10,16 @@
       />
       <button @click="saveApiKey" class="btn">Save Key</button>
     </div>
-    <p v-if="apiKey" class="key-status">API key is set ✅</p>
-    <p v-else class="key-status">No API key set</p>
+    <p class="key-status" :class="{ 'key-set': isApiKeySet }">
+      {{ isApiKeySet ? 'API key is set ✅' : 'No API key set' }}
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useFlashcardStore } from '../stores/flashcards';
+import { useApiKey } from '../../composables/useApiKey';
 
-const store = useFlashcardStore();
-const inputKey = ref('');
-
-const apiKey = computed(() => store.apiKey);
-
-function saveApiKey(): void {
-  if (inputKey.value.trim()) {
-    store.setApiKey(inputKey.value.trim());
-    inputKey.value = '';
-  }
-}
+const { inputKey, isApiKeySet, saveApiKey } = useApiKey();
 </script>
 
 <style scoped>
@@ -64,6 +54,7 @@ input {
   border-radius: 0 4px 4px 0;
   cursor: pointer;
   font-size: 16px;
+  transition: background-color 0.2s ease;
 }
 
 .btn:hover {
@@ -73,5 +64,9 @@ input {
 .key-status {
   font-size: 14px;
   margin-top: 8px;
+}
+
+.key-set {
+  color: #42b983;
 }
 </style>

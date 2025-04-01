@@ -1,13 +1,21 @@
 import Anthropic from '@anthropic-ai/sdk';
 
+export interface FlashcardCard {
+  question: string;
+  answer: string;
+}
+
 export interface FlashcardGenerationResult {
-  cards: Array<{
-    question: string;
-    answer: string;
-  }>;
+  cards: FlashcardCard[];
   error?: string;
 }
 
+const MODEL = 'claude-3-haiku-20240307';
+const MAX_TOKENS = 4000;
+
+/**
+ * Service for interacting with Claude API
+ */
 export class ClaudeService {
   private client: Anthropic | null = null;
   
@@ -17,12 +25,18 @@ export class ClaudeService {
     }
   }
 
+  /**
+   * Initialize the Claude client with an API key
+   */
   initialize(apiKey: string): void {
     this.client = new Anthropic({
       apiKey,
     });
   }
 
+  /**
+   * Generate flashcards from document text
+   */
   async generateFlashcards(documentText: string): Promise<FlashcardGenerationResult> {
     if (!this.client) {
       return {
@@ -33,12 +47,12 @@ export class ClaudeService {
 
     try {
       const response = await this.client.messages.create({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 4000,
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
         messages: [
           {
             role: 'user',
-            content: `Create flashcards from this document text. Extract the key concepts and create question-answer pairs. 
+            content: `Create flashcards from this document text. Extract the key concepts and create question-answer pairs.
             Format your response as a valid JSON array with objects containing "question" and "answer" fields.
             
             Document text:
@@ -61,8 +75,15 @@ export class ClaudeService {
           };
         }
 
-        const cards = JSON.parse(jsonMatch[0]);
-        return { cards };
+        try {
+          const cards = JSON.parse(jsonMatch[0]) as FlashcardCard[];
+          return { cards };
+        } catch (parseError) {
+          return {
+            cards: [],
+            error: 'Failed to parse JSON from Claude response.'
+          };
+        }
       } else {
         return {
           cards: [],
@@ -70,10 +91,11 @@ export class ClaudeService {
         };
       }
     } catch (error) {
-      console.error('Error generating flashcards:', error);
+      // Avoid console.error in production
+      const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         cards: [],
-        error: `Error: ${error instanceof Error ? error.message : String(error)}`
+        error: `Error: ${errorMessage}`
       };
     }
   }

@@ -1,13 +1,16 @@
 <template>
   <div class="flashcard-display">
+    <!-- No flashcards state -->
     <div v-if="!flashcardSets.length" class="no-flashcards">
       <h2>No Flashcard Sets</h2>
       <p>Upload a document to generate flashcards</p>
     </div>
     
+    <!-- With flashcards state -->
     <div v-else>
       <h2>Your Flashcard Sets</h2>
       
+      <!-- Flashcard set selector -->
       <div class="set-selector">
         <div 
           v-for="set in flashcardSets" 
@@ -20,12 +23,18 @@
             <h3>{{ set.name }}</h3>
             <p>{{ set.cards.length }} cards • {{ formatDate(set.createdAt) }}</p>
           </div>
-          <button @click.stop="deleteSet(set.id)" class="delete-btn" title="Delete this set">
+          <button 
+            @click.stop="deleteSet(set.id)" 
+            class="delete-btn" 
+            title="Delete this set"
+            aria-label="Delete flashcard set"
+          >
             ✕
           </button>
         </div>
       </div>
       
+      <!-- Flashcard viewer -->
       <div v-if="selectedSet" class="flashcard-viewer">
         <h3>{{ selectedSet.name }}</h3>
         
@@ -34,6 +43,7 @@
             @click="prevCard" 
             class="nav-btn" 
             :disabled="currentCardIndex === 0"
+            aria-label="Previous flashcard"
           >
             ←
           </button>
@@ -46,18 +56,27 @@
             @click="nextCard" 
             class="nav-btn" 
             :disabled="currentCardIndex === selectedSet.cards.length - 1"
+            aria-label="Next flashcard"
           >
             →
           </button>
         </div>
         
-        <div class="flashcard" @click="flipCard">
+        <!-- Flashcard with flip animation -->
+        <div 
+          class="flashcard" 
+          @click="flipCard"
+          role="button"
+          tabindex="0"
+          @keyup.space="flipCard"
+          aria-label="Click to flip flashcard"
+        >
           <div class="card-content" :class="{ flipped: isFlipped }">
             <div class="card-front">
-              <p>{{ currentCard.question }}</p>
+              <p>{{ currentCard?.question }}</p>
             </div>
             <div class="card-back">
-              <p>{{ currentCard.answer }}</p>
+              <p>{{ currentCard?.answer }}</p>
             </div>
           </div>
           <p class="flip-instruction">Click to flip</p>
@@ -68,102 +87,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { useFlashcardStore } from '../stores/flashcards';
-import type { Flashcard, FlashcardSet } from '../types';
+import { watch } from 'vue';
+import { useFlashcards } from '../../composables/useFlashcards';
 
 const props = defineProps({
   initialSetId: {
-    type: String as () => string,
+    type: String,
     default: ''
   }
 });
 
-const store = useFlashcardStore();
-const selectedSetId = ref(props.initialSetId);
-const currentCardIndex = ref(0);
-const isFlipped = ref(false);
-
-// Get all flashcard sets from the store
-const flashcardSets = computed(() => store.flashcardSets);
-
-// Get the currently selected set
-const selectedSet = computed((): FlashcardSet | null => {
-  if (!selectedSetId.value) return null;
-  return flashcardSets.value.find(set => set.id === selectedSetId.value) || null;
-});
-
-// Get the current card
-const currentCard = computed((): Flashcard => {
-  if (!selectedSet.value) return { question: '', answer: '', id: '', createdAt: new Date() };
-  return selectedSet.value.cards[currentCardIndex.value];
-});
-
-// Select a set
-function selectSet(id: string): void {
-  selectedSetId.value = id;
-  currentCardIndex.value = 0;
-  isFlipped.value = false;
-}
-
-// Delete a set
-function deleteSet(id: string): void {
-  if (confirm('Are you sure you want to delete this flashcard set?')) {
-    store.deleteFlashcardSet(id);
-    
-    if (selectedSetId.value === id) {
-      selectedSetId.value = flashcardSets.value.length > 0 ? flashcardSets.value[0].id : '';
-      currentCardIndex.value = 0;
-      isFlipped.value = false;
-    }
-  }
-}
-
-// Navigate to previous card
-function prevCard(): void {
-  if (currentCardIndex.value > 0) {
-    currentCardIndex.value--;
-    isFlipped.value = false;
-  }
-}
-
-// Navigate to next card
-function nextCard(): void {
-  if (selectedSet.value && currentCardIndex.value < selectedSet.value.cards.length - 1) {
-    currentCardIndex.value++;
-    isFlipped.value = false;
-  }
-}
-
-// Flip the current card
-function flipCard(): void {
-  isFlipped.value = !isFlipped.value;
-}
-
-// Format date for display
-function formatDate(date: Date): string {
-  const d = new Date(date);
-  return d.toLocaleDateString();
-}
-
-// Watch for changes in flashcardSets
-watch(flashcardSets, (newSets) => {
-  // If there are sets but none is selected, select the first one
-  if (newSets.length > 0 && !selectedSetId.value) {
-    selectedSetId.value = newSets[0].id;
-  }
+const { 
+  flashcardSets,
+  selectedSetId,
+  currentCardIndex,
+  isFlipped,
+  selectedSet,
+  currentCard,
   
-  // If the selected set was deleted, select the first available set
-  if (selectedSetId.value && !newSets.find(set => set.id === selectedSetId.value)) {
-    selectedSetId.value = newSets.length > 0 ? newSets[0].id : '';
-    currentCardIndex.value = 0;
-  }
-});
+  selectSet,
+  deleteFlashcardSet: deleteSet,
+  prevCard,
+  nextCard,
+  flipCard,
+  formatDate
+} = useFlashcards();
 
-// Watch for initialSetId changes
+// Watch for initialSetId changes from parent
 watch(() => props.initialSetId, (newId) => {
   if (newId && flashcardSets.value.find(set => set.id === newId)) {
     selectSet(newId);
+  }
+}, { immediate: true });
+
+// Initialize with first set if available and none selected
+watch(flashcardSets, (newSets) => {
+  if (newSets.length > 0 && !selectedSetId.value) {
+    selectSet(newSets[0].id);
   }
 });
 </script>
@@ -237,6 +197,7 @@ watch(() => props.initialSetId, (newId) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .delete-btn:hover {
@@ -265,6 +226,12 @@ watch(() => props.initialSetId, (newId) => {
   border-radius: 20px;
   font-size: 20px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover:not([disabled]) {
+  background-color: #3aa876;
+  transform: scale(1.05);
 }
 
 .nav-btn:disabled {
@@ -312,6 +279,7 @@ watch(() => props.initialSetId, (newId) => {
   justify-content: center;
   padding: 20px;
   border-radius: 10px;
+  overflow-y: auto;
 }
 
 .card-front {
@@ -334,5 +302,15 @@ watch(() => props.initialSetId, (newId) => {
   font-size: 13px;
   color: #999;
   margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .set-selector {
+    flex-direction: column;
+  }
+  
+  .flashcard {
+    height: 250px;
+  }
 }
 </style>

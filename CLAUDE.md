@@ -82,12 +82,19 @@ Flashcard From Document - A static web app that allows users to upload documents
 - `.github/workflows/static.yml` - GitHub-generated workflow (configured for our Vue.js app)
 - `src/main.ts` - Application entry point
 - `src/App.vue` - Root Vue component
-- `src/components/` - UI components
-  - `HelloWorld.vue` - Example component
+- `src/features/` - Feature-based UI components
+  - `api-key/ApiKeyInput.vue` - API key management component
+  - `document-upload/DocumentUploader.vue` - Document upload and processing component
+  - `flashcard-display/FlashcardDisplay.vue` - Flashcard display and navigation component
+- `src/composables/` - Reusable logic hooks
+  - `useApiKey.ts` - API key management logic
+  - `useDocumentUpload.ts` - Document processing logic
+  - `useFlashcardGeneration.ts` - Claude flashcard generation logic
+  - `useFlashcards.ts` - Flashcard management logic
+  - `useLocalStorage.ts` - localStorage integration
 - `src/services/claude.ts` - Claude API integration
-- `src/stores/flashcards.ts` - State management for flashcards
 - `src/types/index.ts` - TypeScript type definitions
-- `tests/app.spec.ts` - Application tests
+- `tests/app.spec.ts` - End-to-end tests
 - `public/index.html` - HTML template
 - `public/favicon.ico` - Site favicon
 
@@ -95,6 +102,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.3.0 - Major refactoring: Reorganized project structure with feature-based folders, added composables, improved loading states, and accessibility
 - 0.2.2 - Fixed ESLint dependencies for GitHub Pages deployment
 - 0.2.1 - Converted application to TypeScript and modernized Vue components
 - 0.2.0 - Implemented core flashcard generation functionality

@@ -21,26 +21,41 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import ApiKeyInput from './components/ApiKeyInput.vue';
-import DocumentUploader from './components/DocumentUploader.vue';
-import FlashcardDisplay from './components/FlashcardDisplay.vue';
+import ApiKeyInput from './features/api-key/ApiKeyInput.vue';
+import DocumentUploader from './features/document-upload/DocumentUploader.vue';
+import FlashcardDisplay from './features/flashcard-display/FlashcardDisplay.vue';
 import pkg from '../package.json';
 import type { FlashcardSet } from './types';
 
 const latestSetId = ref('');
 const version = ref(pkg.version);
 
-function onFlashcardsGenerated(newSet: FlashcardSet) {
+function onFlashcardsGenerated(newSet: FlashcardSet): void {
   latestSetId.value = newSet.id;
 }
 </script>
 
 <style>
+:root {
+  --primary-color: #42b983;
+  --primary-hover: #3aa876;
+  --error-color: #e53935;
+  --text-color: #2c3e50;
+  --muted-text: #666;
+  --border-color: #ddd;
+  --bg-color: #f9f9f9;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  color: var(--text-color);
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
@@ -58,7 +73,7 @@ header {
 
 h1 {
   font-size: 28px;
-  color: #42b983;
+  color: var(--primary-color);
 }
 
 main {
@@ -69,8 +84,24 @@ footer {
   text-align: center;
   margin: 30px 0;
   padding-top: 20px;
-  border-top: 1px solid #eee;
-  color: #999;
+  border-top: 1px solid var(--border-color);
+  color: var(--muted-text);
   font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #app {
+    padding: 0 15px;
+  }
+  
+  h1 {
+    font-size: 24px;
+  }
+  
+  .logo {
+    width: 60px;
+    height: 60px;
+  }
 }
 </style>
