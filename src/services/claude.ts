@@ -10,8 +10,8 @@ export interface FlashcardGenerationResult {
   error?: string;
 }
 
-const MODEL = 'claude-3-sonnet-20240229';
-const MAX_TOKENS = 4000;
+const MODEL = 'claude-3-5-sonnet-20241022';
+const MAX_TOKENS = 8000;
 
 /**
  * Service for interacting with Claude API
