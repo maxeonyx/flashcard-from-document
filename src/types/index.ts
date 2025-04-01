@@ -40,3 +40,32 @@ export interface ApiResponse<T> {
   error?: string;
   loading: boolean;
 }
+
+/**
+ * Response format from Claude API for flashcard generation
+ */
+export interface GenerateFlashcardsResponse {
+  title: string;
+  cards: {
+    question: string;
+    answer: string;
+  }[];
+}
+
+// Global window interface extensions for testing compatibility
+declare global {
+  interface Window {
+    __FLASHCARD_STORE_INITIALIZED?: boolean;
+    __flashcardStore?: {
+      apiKey: string;
+      flashcardSets: FlashcardSet[];
+      selectedSetId: string;
+    };
+    __flashcardMethods?: {
+      addFlashcardSet: (set: Omit<FlashcardSet, 'id' | 'createdAt'>) => FlashcardSet;
+      deleteFlashcardSet: (id: string) => void;
+      selectSet: (id: string) => void;
+      updateFlashcard: (setId: string, cardId: string, question: string, answer: string) => void;
+    };
+  }
+}

@@ -46,6 +46,10 @@ Flashcard From Document - A static web app that allows users to upload documents
    - ALL code changes MUST have corresponding tests
    - Run the full test suite with `npm run test` prior to every commit
    - Tests MUST pass before any commit
+   - NEVER increase test timeouts to make tests pass. The app should respond immediately to state changes.
+   - Use SHORT_TIMEOUT (16ms - one frame) to verify immediate reactivity
+   - Use NORMAL_TIMEOUT (100ms) for normal UI operations
+   - NEVER use arbitrary timeouts like page.waitForTimeout() - this hides performance issues
 
 3. **Pre-Commit Checklist**
    BEFORE git commit, always do ALL of the following:
@@ -60,7 +64,7 @@ Flashcard From Document - A static web app that allows users to upload documents
      - Ask the user what's next
        - Continue development?
        - Commit and (if the app is changed) push (ie. deploy. You don't have to ask here, just go ahead.)
-   - Lastly, (if there were changes to the app itself), update the semver version in package.json. The version is shown to users, so this is REQUIRED.
+   - ONLY AFTER the user has confirmed, update the semver version in package.json AND update the version history in CLAUDE.md. The version is shown to users, so this is REQUIRED before committing.
 
    There are no commit message requirements.
 
@@ -170,7 +174,8 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
-- 0.5.1 - Fixed reactivity issue with flashcard sets not appearing until page reload
+- 0.5.2 - Completely refactored state management to use Pinia store as single source of truth, fully fixing reactivity issues
+- 0.5.1 - Initial fix for reactivity issue with flashcard sets not appearing until page reload
 - 0.5.0 - Implemented key UI improvements: added bin icon for deletion, added flashcard editing, and API key onboarding flow
 - 0.4.2 - Added version.json generation at build time and display in UI footer
 - 0.4.1 - Migrated ESLint configuration from .eslintrc.cjs to eslint.config.js (flat config)

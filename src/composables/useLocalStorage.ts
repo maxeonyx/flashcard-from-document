@@ -11,21 +11,30 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
   const storedValue = ref<T>(defaultValue);
 
   // Initialize with value from localStorage if available
-  try {
-    const value = localStorage.getItem(key);
-    if (value !== null) {
-      storedValue.value = JSON.parse(value);
+  const initializeFromStorage = () => {
+    try {
+      const value = localStorage.getItem(key);
+      if (value !== null) {
+        storedValue.value = JSON.parse(value);
+      }
+    } catch (error) {
+      console.error(`Error reading ${key} from localStorage:`, error);
     }
-  } catch (error) {
-    console.error(`Error reading ${key} from localStorage:`, error);
+  };
+
+  // Initialize immediately
+  if (typeof window !== 'undefined') {
+    initializeFromStorage();
   }
 
   // Update localStorage when the value changes
   watchEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(storedValue.value));
-    } catch (error) {
-      console.error(`Error storing ${key} to localStorage:`, error);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(key, JSON.stringify(storedValue.value));
+      } catch (error) {
+        console.error(`Error storing ${key} to localStorage:`, error);
+      }
     }
   });
 
@@ -54,6 +63,10 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
   // Add event listeners when component mounts
   if (typeof window !== 'undefined') {
     onMounted(() => {
+      // Re-read from localStorage when mounting to ensure we have latest data
+      initializeFromStorage();
+      
+      // Set up event listeners
       window.addEventListener('storage', handleStorageChange);
       window.addEventListener('localStorage-updated', handleCustomStorageChange as EventListener);
     });

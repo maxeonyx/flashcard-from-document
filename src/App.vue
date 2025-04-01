@@ -40,19 +40,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import ApiKeyInput from './features/api-key/ApiKeyInput.vue';
 import DocumentUploader from './features/document-upload/DocumentUploader.vue';
 import FlashcardDisplay from './features/flashcard-display/FlashcardDisplay.vue';
 import { useVersion } from './composables/useVersion';
 import { useApiKey } from './composables/useApiKey';
+import { useFlashcards } from './composables/useFlashcards';
 import type { FlashcardSet } from './types';
 
 const latestSetId = ref('');
 const { version: versionInfo } = useVersion();
 const version = computed(() => versionInfo.value?.version || '0.0.0');
 const { isApiKeySet } = useApiKey();
+const { flashcardSets } = useFlashcards();
 const showApiKeyInput = ref(false);
+
+// Watch for changes in flashcard sets to update the latest set ID
+watch(flashcardSets, (sets) => {
+  // If no set is selected but sets exist, select the first one
+  if (sets.length > 0 && !latestSetId.value) {
+    latestSetId.value = sets[0].id;
+  }
+}, { immediate: true });
 
 function onFlashcardsGenerated(newSet: FlashcardSet): void {
   latestSetId.value = newSet.id;
@@ -60,7 +70,7 @@ function onFlashcardsGenerated(newSet: FlashcardSet): void {
 
 function refreshApiKeyStatus(): void {
   // This function is called when an API key is saved
-  // It doesn't need to do anything since isApiKeySet is reactive
+  // Just hide the API key input
   showApiKeyInput.value = false;
 }
 </script>

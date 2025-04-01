@@ -131,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { useFlashcards } from '../../composables/useFlashcards';
 import type { Flashcard } from '../../types';
 
@@ -184,8 +184,19 @@ const formattedAnswer = computed(() => {
 
 // Initialize with first set if available and none selected
 watch(flashcardSets, (newSets) => {
+  console.log('FlashcardDisplay: flashcardSets changed, length:', newSets.length);
   if (newSets.length > 0 && !selectedSetId.value) {
+    console.log('FlashcardDisplay: Selecting first set:', newSets[0].id);
     selectSet(newSets[0].id);
+  }
+}, { immediate: true, deep: true });
+
+// Make sure we have a selected set when we mount
+onMounted(() => {
+  // Always initialize with a selected set if available
+  if (flashcardSets.value.length > 0 && !selectedSetId.value) {
+    console.log('FlashcardDisplay mounted: selecting first set');
+    selectSet(flashcardSets.value[0].id);
   }
 });
 

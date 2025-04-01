@@ -1,5 +1,5 @@
-import { computed, ref } from 'vue';
-import { useLocalStorage } from './useLocalStorage';
+import { computed, ref, onMounted } from 'vue';
+import { useFlashcardStore } from '../stores/flashcards';
 import type { Flashcard, FlashcardSet } from '../types';
 
 /**
@@ -7,109 +7,58 @@ import type { Flashcard, FlashcardSet } from '../types';
  * @returns Functions and reactive data for flashcard management
  */
 export function useFlashcards() {
-  const flashcardSets = useLocalStorage<FlashcardSet[]>('flashcard-sets', []);
-  const selectedSetId = ref<string>('');
+  // Use the centralized Pinia store
+  const store = useFlashcardStore();
+  
+  // Local component state
   const currentCardIndex = ref<number>(0);
   const isFlipped = ref<boolean>(false);
   
-  const selectedSet = computed((): FlashcardSet | undefined => {
-    if (!selectedSetId.value) return undefined;
-    return flashcardSets.value.find(set => set.id === selectedSetId.value);
+  // Set up the storage event listener for cross-tab sync
+  onMounted(() => {
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === 'flashcard-sets' || e.key === 'claude-api-key') {
+        store.syncFromLocalStorage();
+      }
+    };
+    
+    // Add listener for storage events
+    addEventListener('storage', handleStorageEvent);
+    
+    // Initialize selection if needed
+    if (store.flashcardSets.length > 0 && !store.selectedSetId) {
+      store.selectSet(store.flashcardSets[0].id);
+    }
+    
+    // Return cleanup function
+    return () => {
+      removeEventListener('storage', handleStorageEvent);
+    };
   });
   
+  // Computed property for the currently selected flashcard
   const currentCard = computed((): Flashcard | undefined => {
-    if (!selectedSet.value || !selectedSet.value.cards.length) return undefined;
-    return selectedSet.value.cards[currentCardIndex.value];
+    if (!store.selectedSet || !store.selectedSet.cards.length) return undefined;
+    return store.selectedSet.cards[currentCardIndex.value];
   });
   
+  // Select a flashcard set and reset card navigation
   function selectSet(id: string): void {
-    selectedSetId.value = id;
+    store.selectSet(id);
     currentCardIndex.value = 0;
     isFlipped.value = false;
   }
   
+  // Add a new flashcard set
   function addFlashcardSet(set: Omit<FlashcardSet, 'id' | 'createdAt'>): FlashcardSet {
-    const newSet: FlashcardSet = {
-      ...set,
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-    };
-    
-    flashcardSets.value = [...flashcardSets.value, newSet];
-    // Automatically select the newly created set
-    selectSet(newSet.id);
-    
-    // Dispatch a custom event to notify all components about the localStorage change
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('localStorage-updated', {
-        detail: {
-          key: 'flashcard-sets',
-          value: flashcardSets.value
-        }
-      }));
-    }
-    
+    const newSet = store.addFlashcardSet(set);
+    // Reset UI state for the new set
+    currentCardIndex.value = 0;
+    isFlipped.value = false;
     return newSet;
   }
   
-  function deleteFlashcardSet(id: string): void {
-    if (selectedSetId.value === id) {
-      // If deleting the currently selected set, select another one
-      const remainingSets = flashcardSets.value.filter(set => set.id !== id);
-      selectedSetId.value = remainingSets.length > 0 ? remainingSets[0].id : '';
-      currentCardIndex.value = 0;
-      isFlipped.value = false;
-    }
-    
-    flashcardSets.value = flashcardSets.value.filter(set => set.id !== id);
-    
-    // Dispatch a custom event to notify all components about the localStorage change
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('localStorage-updated', {
-        detail: {
-          key: 'flashcard-sets',
-          value: flashcardSets.value
-        }
-      }));
-    }
-  }
-  
-  function updateFlashcard(setId: string, cardId: string, question: string, answer: string): void {
-    const setIndex = flashcardSets.value.findIndex(set => set.id === setId);
-    if (setIndex === -1) return;
-    
-    const cardIndex = flashcardSets.value[setIndex].cards.findIndex(card => card.id === cardId);
-    if (cardIndex === -1) return;
-    
-    // Create a deep copy of the flashcard sets
-    const updatedSets = [...flashcardSets.value];
-    
-    // Update the specific card
-    updatedSets[setIndex] = {
-      ...updatedSets[setIndex],
-      cards: [...updatedSets[setIndex].cards]
-    };
-    
-    updatedSets[setIndex].cards[cardIndex] = {
-      ...updatedSets[setIndex].cards[cardIndex],
-      question,
-      answer
-    };
-    
-    // Update the state
-    flashcardSets.value = updatedSets;
-    
-    // Dispatch a custom event to notify all components about the localStorage change
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('localStorage-updated', {
-        detail: {
-          key: 'flashcard-sets',
-          value: flashcardSets.value
-        }
-      }));
-    }
-  }
-  
+  // Navigate to previous card
   function prevCard(): void {
     if (currentCardIndex.value > 0) {
       currentCardIndex.value--;
@@ -117,33 +66,43 @@ export function useFlashcards() {
     }
   }
   
+  // Navigate to next card
   function nextCard(): void {
-    if (selectedSet.value && currentCardIndex.value < selectedSet.value.cards.length - 1) {
+    if (store.selectedSet && currentCardIndex.value < store.selectedSet.cards.length - 1) {
       currentCardIndex.value++;
       isFlipped.value = false;
     }
   }
   
+  // Flip the current card
   function flipCard(): void {
     isFlipped.value = !isFlipped.value;
   }
   
+  // Format a date for display
   function formatDate(date: Date): string {
     return new Date(date).toLocaleDateString();
   }
   
   return {
-    flashcardSets,
-    selectedSetId,
+    // State from the store
+    flashcardSets: computed(() => store.flashcardSets),
+    selectedSetId: computed({
+      get: () => store.selectedSetId,
+      set: (id) => store.selectSet(id)
+    }),
+    selectedSet: computed(() => store.selectedSet),
+    
+    // Local state
     currentCardIndex,
     isFlipped,
-    selectedSet,
     currentCard,
     
+    // Methods that combine store actions with local state
     selectSet,
     addFlashcardSet,
-    deleteFlashcardSet,
-    updateFlashcard,
+    deleteFlashcardSet: store.deleteFlashcardSet,
+    updateFlashcard: store.updateFlashcard,
     prevCard,
     nextCard,
     flipCard,

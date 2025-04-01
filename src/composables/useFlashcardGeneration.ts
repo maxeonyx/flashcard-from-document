@@ -55,16 +55,6 @@ export function useFlashcardGeneration() {
         cards: flashcards
       });
       
-      // Dispatch a custom event to notify all components about the localStorage change
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('localStorage-updated', {
-          detail: {
-            key: 'flashcard-sets',
-            value: JSON.parse(localStorage.getItem('flashcard-sets') || '[]')
-          }
-        }));
-      }
-      
       return newSet;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An unknown error occurred';

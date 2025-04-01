@@ -1,25 +1,25 @@
 import { computed, ref } from 'vue';
-import { useLocalStorage } from './useLocalStorage';
+import { useFlashcardStore } from '../stores/flashcards';
 
 /**
  * Composable for managing the Claude API key
  * @returns Functions and reactive data for API key management
  */
 export function useApiKey() {
-  const apiKey = useLocalStorage<string>('claude-api-key', '');
+  const store = useFlashcardStore();
   const inputKey = ref('');
   
-  const isApiKeySet = computed(() => !!apiKey.value);
+  const isApiKeySet = computed(() => store.isApiKeySet);
   
   function saveApiKey(): void {
     if (inputKey.value.trim()) {
-      apiKey.value = inputKey.value.trim();
+      store.setApiKey(inputKey.value.trim());
       inputKey.value = '';
     }
   }
   
   return {
-    apiKey,
+    apiKey: computed(() => store.apiKey),
     inputKey,
     isApiKeySet,
     saveApiKey
