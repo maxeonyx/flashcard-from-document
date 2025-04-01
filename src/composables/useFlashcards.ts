@@ -36,6 +36,8 @@ export function useFlashcards() {
     };
     
     flashcardSets.value = [...flashcardSets.value, newSet];
+    // Automatically select the newly created set
+    selectSet(newSet.id);
     return newSet;
   }
   

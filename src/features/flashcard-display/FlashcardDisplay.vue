@@ -76,7 +76,7 @@
               <p>{{ currentCard?.question }}</p>
             </div>
             <div class="card-back">
-              <p>{{ currentCard?.answer }}</p>
+              <p v-html="formattedAnswer"></p>
             </div>
           </div>
           <p class="flip-instruction">Click to flip</p>
@@ -87,7 +87,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import { useFlashcards } from '../../composables/useFlashcards';
 
 const props = defineProps({
@@ -119,6 +119,16 @@ watch(() => props.initialSetId, (newId) => {
     selectSet(newId);
   }
 }, { immediate: true });
+
+// Format answer text with line breaks
+const formattedAnswer = computed(() => {
+  if (!currentCard.value?.answer) return '';
+  return currentCard.value.answer
+    .replace(/\n/g, '<br>')
+    .replace(/\d+\./g, '<br>$&')
+    .replace(/;/g, ';<br>')
+    .replace(/\. /g, '.<br>');
+});
 
 // Initialize with first set if available and none selected
 watch(flashcardSets, (newSets) => {
