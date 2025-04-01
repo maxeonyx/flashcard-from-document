@@ -29,5 +29,16 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
     }
   });
 
+  // Listen for storage events (changes from other components)
+  window.addEventListener('storage', (event) => {
+    if (event.key === key && event.newValue !== null) {
+      try {
+        storedValue.value = JSON.parse(event.newValue);
+      } catch (error) {
+        console.error(`Error parsing ${key} from localStorage event:`, error);
+      }
+    }
+  });
+
   return storedValue;
 }

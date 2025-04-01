@@ -55,15 +55,12 @@ Flashcard From Document - A static web app that allows users to upload documents
    - Before reporting back to the user:
      - Do the tests cover this functionality?
      - Is there any code that can now be cleaned up or refactored?
-   - Report back to the user:
+   - Report back to the user. NEVER just commit - always ask the user first.
      - Summarize the changes, and how the changes are covered by the tests.
      - Ask the user what's next
        - Continue development?
-       - Commit and (if the app is changed) push (ie. deploy).
-   - Lastly, again if there were changes to the app itself, update the version in package.json (increment according to semver). The version is shown to users, so this is REQUIRED
-     - Major: Breaking changes
-     - Minor: New features
-     - Patch: Bug fixes
+       - Commit and (if the app is changed) push (ie. deploy. You don't have to ask here, just go ahead.)
+   - Lastly, (if there were changes to the app itself), update the semver version in package.json. The version is shown to users, so this is REQUIRED.
 
    There are no commit message requirements.
 
@@ -74,7 +71,7 @@ Flashcard From Document - A static web app that allows users to upload documents
    - `git push`
    - `gh run list --limit 5`
    - `gh run watch <run-id>`
-   - Verify the new version is live at https://maxeonyx.github.io/flashcard-from-document/ (view it with web fetch)
+   - Verify the new version is live at https://maxeonyx.github.io/flashcard-from-document/version.json (view it with web fetch)
    - If successful, link the user to the working application.
    
 6. **Deployment Configuration**
@@ -173,6 +170,7 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.5.0 - Implemented key UI improvements: fixed flashcard reactivity, added bin icon for deletion, added flashcard editing, and API key onboarding flow
 - 0.4.2 - Added version.json generation at build time and display in UI footer
 - 0.4.1 - Migrated ESLint configuration from .eslintrc.cjs to eslint.config.js (flat config)
 - 0.4.0 - Migrated build system from Vue CLI to Vite

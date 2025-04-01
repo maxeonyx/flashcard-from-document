@@ -7,11 +7,15 @@
         v-model="inputKey" 
         placeholder="Enter your Claude API key"
         class="form-control"
+        @keyup.enter="saveAndEmit"
       />
-      <button @click="saveApiKey" class="btn">Save Key</button>
+      <button @click="saveAndEmit" class="btn">Save Key</button>
     </div>
     <p class="key-status" :class="{ 'key-set': isApiKeySet }">
       {{ isApiKeySet ? 'API key is set ✅' : 'No API key set' }}
+    </p>
+    <p class="key-info">
+      Your API key is stored locally in your browser and is never sent to our servers.
     </p>
   </div>
 </template>
@@ -19,7 +23,15 @@
 <script setup lang="ts">
 import { useApiKey } from '../../composables/useApiKey';
 
+const emit = defineEmits(['key-saved']);
 const { inputKey, isApiKeySet, saveApiKey } = useApiKey();
+
+function saveAndEmit(): void {
+  if (inputKey.value.trim()) {
+    saveApiKey();
+    emit('key-saved');
+  }
+}
 </script>
 
 <style scoped>
@@ -68,5 +80,12 @@ input {
 
 .key-set {
   color: #42b983;
+}
+
+.key-info {
+  font-size: 13px;
+  color: #666;
+  margin-top: 12px;
+  font-style: italic;
 }
 </style>

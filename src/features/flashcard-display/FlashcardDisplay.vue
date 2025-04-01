@@ -29,7 +29,10 @@
             title="Delete this set"
             aria-label="Delete flashcard set"
           >
-            ✕
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
           </button>
         </div>
       </div>
@@ -74,12 +77,53 @@
           <div class="card-content" :class="{ flipped: isFlipped }">
             <div class="card-front">
               <p>{{ currentCard?.question }}</p>
+              <button 
+                @click.stop="editCard" 
+                class="edit-btn" 
+                title="Edit this flashcard"
+                aria-label="Edit flashcard"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
             </div>
             <div class="card-back">
               <p v-html="formattedAnswer"></p>
+              <button 
+                @click.stop="editCard" 
+                class="edit-btn" 
+                title="Edit this flashcard"
+                aria-label="Edit flashcard"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
             </div>
           </div>
           <p class="flip-instruction">Click to flip</p>
+        </div>
+        
+        <!-- Edit flashcard modal -->
+        <div v-if="isEditModalOpen" class="edit-modal">
+          <div class="edit-modal-content">
+            <h3>Edit Flashcard</h3>
+            <div class="form-group">
+              <label for="question">Question</label>
+              <textarea id="question" v-model="editingCard.question" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="answer">Answer</label>
+              <textarea id="answer" v-model="editingCard.answer" rows="5"></textarea>
+            </div>
+            <div class="modal-actions">
+              <button class="btn-cancel" @click="cancelEdit">Cancel</button>
+              <button class="btn-save" @click="saveEdit">Save</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -87,8 +131,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useFlashcards } from '../../composables/useFlashcards';
+import type { Flashcard } from '../../types';
 
 const props = defineProps({
   initialSetId: {
@@ -110,8 +155,15 @@ const {
   prevCard,
   nextCard,
   flipCard,
-  formatDate
+  formatDate,
+  updateFlashcard
 } = useFlashcards();
+
+const isEditModalOpen = ref(false);
+const editingCard = ref<Partial<Flashcard>>({
+  question: '',
+  answer: ''
+});
 
 // Watch for initialSetId changes from parent
 watch(() => props.initialSetId, (newId) => {
@@ -136,6 +188,36 @@ watch(flashcardSets, (newSets) => {
     selectSet(newSets[0].id);
   }
 });
+
+function editCard(event: Event): void {
+  event.stopPropagation();
+  if (currentCard.value) {
+    editingCard.value = {
+      id: currentCard.value.id,
+      question: currentCard.value.question,
+      answer: currentCard.value.answer
+    };
+    isEditModalOpen.value = true;
+  }
+}
+
+function saveEdit(): void {
+  if (currentCard.value && editingCard.value.id && 
+      selectedSet.value && typeof editingCard.value.question === 'string' && 
+      typeof editingCard.value.answer === 'string') {
+    updateFlashcard(
+      selectedSet.value.id,
+      editingCard.value.id,
+      editingCard.value.question,
+      editingCard.value.answer
+    );
+    isEditModalOpen.value = false;
+  }
+}
+
+function cancelEdit(): void {
+  isEditModalOpen.value = false;
+}
 </script>
 
 <style scoped>
@@ -285,6 +367,7 @@ watch(flashcardSets, (newSets) => {
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
@@ -306,12 +389,113 @@ watch(flashcardSets, (newSets) => {
 .card-front p, .card-back p {
   font-size: 18px;
   line-height: 1.6;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .flip-instruction {
   font-size: 13px;
   color: #999;
   margin-top: 10px;
+}
+
+.edit-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  border: none;
+  color: #999;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 50%;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 1;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.edit-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-cancel, .btn-save {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #333;
+}
+
+.btn-save {
+  background-color: #42b983;
+  border: none;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background-color: #e9e9e9;
+}
+
+.btn-save:hover {
+  background-color: #3aa876;
 }
 
 @media (max-width: 768px) {

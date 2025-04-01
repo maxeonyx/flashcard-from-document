@@ -6,11 +6,28 @@
     </header>
 
     <main>
-      <ApiKeyInput />
+      <!-- API Key Setup Screen -->
+      <div v-if="!isApiKeySet" class="onboarding-container">
+        <h2>Welcome to Flashcard From Document</h2>
+        <p>Please enter your Claude API key to get started</p>
+        <ApiKeyInput @key-saved="refreshApiKeyStatus" />
+      </div>
       
-      <DocumentUploader @flashcardsGenerated="onFlashcardsGenerated" />
-      
-      <FlashcardDisplay :initialSetId="latestSetId" />
+      <!-- Main Application -->
+      <div v-else>
+        <div class="api-key-status">
+          <span class="api-key-badge">API Key: ✅</span>
+          <button @click="showApiKeyInput = !showApiKeyInput" class="key-toggle-btn">
+            {{ showApiKeyInput ? 'Hide' : 'Change API Key' }}
+          </button>
+        </div>
+        
+        <ApiKeyInput v-if="showApiKeyInput" />
+        
+        <DocumentUploader @flashcardsGenerated="onFlashcardsGenerated" />
+        
+        <FlashcardDisplay :initialSetId="latestSetId" />
+      </div>
     </main>
 
     <footer>
@@ -28,14 +45,23 @@ import ApiKeyInput from './features/api-key/ApiKeyInput.vue';
 import DocumentUploader from './features/document-upload/DocumentUploader.vue';
 import FlashcardDisplay from './features/flashcard-display/FlashcardDisplay.vue';
 import { useVersion } from './composables/useVersion';
+import { useApiKey } from './composables/useApiKey';
 import type { FlashcardSet } from './types';
 
 const latestSetId = ref('');
 const { version: versionInfo } = useVersion();
 const version = computed(() => versionInfo.value?.version || '0.0.0');
+const { isApiKeySet } = useApiKey();
+const showApiKeyInput = ref(false);
 
 function onFlashcardsGenerated(newSet: FlashcardSet): void {
   latestSetId.value = newSet.id;
+}
+
+function refreshApiKeyStatus(): void {
+  // This function is called when an API key is saved
+  // It doesn't need to do anything since isApiKeySet is reactive
+  showApiKeyInput.value = false;
 }
 </script>
 
@@ -82,6 +108,56 @@ h1 {
 
 main {
   margin-bottom: 50px;
+}
+
+.onboarding-container {
+  max-width: 600px;
+  margin: 40px auto;
+  text-align: center;
+  padding: 30px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.onboarding-container h2 {
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
+
+.onboarding-container p {
+  margin-bottom: 30px;
+  color: var(--muted-text);
+}
+
+.api-key-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.api-key-badge {
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.key-toggle-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.key-toggle-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 footer {

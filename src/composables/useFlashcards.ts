@@ -53,6 +53,32 @@ export function useFlashcards() {
     flashcardSets.value = flashcardSets.value.filter(set => set.id !== id);
   }
   
+  function updateFlashcard(setId: string, cardId: string, question: string, answer: string): void {
+    const setIndex = flashcardSets.value.findIndex(set => set.id === setId);
+    if (setIndex === -1) return;
+    
+    const cardIndex = flashcardSets.value[setIndex].cards.findIndex(card => card.id === cardId);
+    if (cardIndex === -1) return;
+    
+    // Create a deep copy of the flashcard sets
+    const updatedSets = [...flashcardSets.value];
+    
+    // Update the specific card
+    updatedSets[setIndex] = {
+      ...updatedSets[setIndex],
+      cards: [...updatedSets[setIndex].cards]
+    };
+    
+    updatedSets[setIndex].cards[cardIndex] = {
+      ...updatedSets[setIndex].cards[cardIndex],
+      question,
+      answer
+    };
+    
+    // Update the state
+    flashcardSets.value = updatedSets;
+  }
+  
   function prevCard(): void {
     if (currentCardIndex.value > 0) {
       currentCardIndex.value--;
@@ -86,6 +112,7 @@ export function useFlashcards() {
     selectSet,
     addFlashcardSet,
     deleteFlashcardSet,
+    updateFlashcard,
     prevCard,
     nextCard,
     flipCard,
