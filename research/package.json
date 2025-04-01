@@ -1,0 +1,18 @@
+{
+  "name": "pdf-research",
+  "version": "1.0.0",
+  "description": "Research scripts for PDF processing with Claude",
+  "type": "module",
+  "scripts": {
+    "test": "node --loader ts-node/esm pdf-test.ts",
+    "test:extract": "node --loader ts-node/esm pdf-text-extraction.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.11.2",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  }
+}
