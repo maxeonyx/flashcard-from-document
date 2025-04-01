@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --loader ts-node/esm pdf-test.ts",
     "test:extract": "node --loader ts-node/esm pdf-text-extraction.ts",
-    "test:extract:fixed": "tsx pdf-text-extraction-fixed.ts"
+    "test:extract:fixed": "tsx pdf-text-extraction-fixed.ts",
+    "test:anthropic": "tsx pdf-anthropic-api.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0"
