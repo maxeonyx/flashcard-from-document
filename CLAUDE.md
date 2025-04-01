@@ -4,10 +4,9 @@
 Flashcard From Document - A static web app that allows users to upload documents and create flashcards using Anthropic's Claude API. The application is designed to be simple, efficient, and user-friendly, with all processing happening client-side for maximum privacy.
 
 ## Current Features
-- Document upload and text extraction (.txt, .md, .pdf formats)
+- Document upload and text extraction (plaintext only)
 - Intelligent flashcard generation via Claude API
 - Automatic titling of flashcard sets based on content
-- Well-formatted flashcard answers with proper line breaks
 - Local storage for API keys and flashcard sets (no server-side storage)
 - Multiple flashcard set management
 - Interactive flashcard interface with flip animation
@@ -17,17 +16,15 @@ Flashcard From Document - A static web app that allows users to upload documents
 ## Planned Features
 
 ### Functionality Enhancements
-- Support for more document formats (docx, epub, etc.)
+- Support for more document formats esp. PDF (but also docx, epub, etc.)
 - Customizable flashcard templates
 - Spaced repetition learning system
 - Exportable flashcards (Anki, CSV)
 - Categorization and tagging of flashcard sets
-- Shareable flashcard sets via URL (no server storage)
+- Share / import flashcard sets via URL or QR code (no server storage)
 
 ### Technical Improvements
-- Update to modern ESLint flat configuration
 - Performance optimizations for larger flashcard sets
-- Upgrade to latest Vite and Vue versions
 
 ## Development Philosophy
 
@@ -55,25 +52,29 @@ Flashcard From Document - A static web app that allows users to upload documents
    
    - Review added & related code, and make any improvements before committing. A small codebase is a good codebase.
    - `npm run typecheck && npm run lint && npm run test`
-   - Update version in package.json (increment according to semver)
+   - Before reporting back to the user:
+     - Do the tests cover this functionality?
+     - Is there any code that can now be cleaned up or refactored?
+   - Report back to the user:
+     - Summarize the changes, and how the changes are covered by the tests.
+     - Ask the user what's next
+       - Continue development?
+       - Commit and (if the app is changed) push (ie. deploy).
+   - Lastly, again if there were changes to the app itself, update the version in package.json (increment according to semver). The version is shown to users, so this is REQUIRED
      - Major: Breaking changes
      - Minor: New features
      - Patch: Bug fixes
-   - Display version is shown to users, so this is REQUIRED
-   - Summarize the changed files and tests written to the user
-   - Ask the user whether there is more to do, to commit and continue development, or commit and push/deploy
 
    There are no commit message requirements.
 
 5. **Deployment Process**
    The app is deployed via GitHub workflows to GitHub pages. When deploying,
-   always do ALL of the following.
+   always do ALL of the following:
 
    - `git push`
-   - `sleep 5 && gh run list | head -5`
-   - If any more waiting is required, link the user to https://github.com/maxeonyx/flashcard-from-document/actions/workflows/static.yml
-   - If failed check logs for the given run(s): `sleep 5 && gh run view <run-id> --log-failed`
-   - Verify https://maxeonyx.github.io/flashcard-from-document/ with WebFetchTool
+   - `gh run list --limit 5`
+   - `gh run watch <run-id>`
+   - Verify the new version is live at https://maxeonyx.github.io/flashcard-from-document/ (view it with web fetch)
    - If successful, link the user to the working application.
    
 6. **Deployment Configuration**
@@ -105,12 +106,10 @@ Flashcard From Document - A static web app that allows users to upload documents
 
 ### Project Commands
 - `npm run build` - Build production-ready assets
-- `npm run preview` - Preview production build locally
-- `npm run type-check` - Check TypeScript types
-- `npm run typecheck` - Alternative TypeScript check (for compatibility)
+- `npm run typecheck` - Check types are valid.
 - `npm run lint` - Run ESLint code quality checks
 - `npm run test` - Run Playwright end-to-end tests
-- Do NOT use `npm run dev`.
+- Do NOT use `npm run dev` or `npm run preview` - you can't view the output. Use comprehensive tests instead.
 
 ### Deployment Monitoring Commands
 - `gh run list` - Check GitHub Actions workflow status
@@ -122,7 +121,6 @@ Flashcard From Document - A static web app that allows users to upload documents
 - Using Anthropic API directly from browser with Claude 3.5 Sonnet model
 - Secure API key handling in localStorage (never stored on server)
 - Prompt engineering for structured JSON output with title and flashcards
-- Robust JSON parsing with multiple fallback strategies
 - Comprehensive error handling and user feedback
 - Client-side model validation and content preprocessing
 
@@ -137,7 +135,7 @@ The project follows a feature-based architecture with composables for reusable l
 - `src/App.vue` - Root Vue component
 
 ### Configuration Files
-- `.eslintrc.cjs` - ESLint configuration (CommonJS format for compatibility)
+- `eslint.config.js` - ESLint configuration (using the modern flat config format)
 - `tsconfig.json` - TypeScript project configuration
 - `tsconfig.app.json` - TypeScript configuration for the Vue application
 - `tsconfig.node.json` - TypeScript configuration for Node.js environment
@@ -146,8 +144,7 @@ The project follows a feature-based architecture with composables for reusable l
 - `env.d.ts` - TypeScript declarations for Vite environment
 
 > **Note:** The project has been migrated from Vue CLI to Vite.
-> ESLint is currently using the `.eslintrc.cjs` format, but a future update
-> may migrate to the newer flat configuration format.
+> ESLint is now using the modern flat configuration format (`eslint.config.js`).
 
 ### Feature Components
 - `src/features/` - UI components organized by feature
@@ -176,6 +173,7 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.4.1 - Migrated ESLint configuration from .eslintrc.cjs to eslint.config.js (flat config)
 - 0.4.0 - Migrated build system from Vue CLI to Vite
 - 0.3.8 - Enhanced pre-commit process with user interaction and decision points
 - 0.3.7 - Updated project documentation with features, architecture, and roadmap
