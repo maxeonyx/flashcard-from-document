@@ -173,6 +173,7 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.4.2 - Added version.json generation at build time and display in UI footer
 - 0.4.1 - Migrated ESLint configuration from .eslintrc.cjs to eslint.config.js (flat config)
 - 0.4.0 - Migrated build system from Vue CLI to Vite
 - 0.3.8 - Enhanced pre-commit process with user interaction and decision points
