@@ -1,10 +1,13 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Optimized workflow for deploying static content to GitHub Pages
 name: Deploy static content to Pages
 
 on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -22,8 +25,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Playwright browsers if not cached
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Run tests
+        run: npm test
+
   deploy:
+    needs: test
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -39,13 +71,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run tests
-        run: npm test
+        run: npm ci --no-audit --no-fund --omit=dev
 
       - name: Build
         run: npm run build
