@@ -1,183 +1,135 @@
 import { test, expect } from '@playwright/test';
 
-// These timeouts are the same as in app.spec.ts
-const SHORT_TIMEOUT = 16; // ms - single frame, for checking immediate reactivity
-const NORMAL_TIMEOUT = 100; // ms - for normal UI operations that should be fast
+// Timeouts are intentionally short to catch reactivity issues
+// SHORT_TIMEOUT is used for immediate reactivity checks (but not in this test file yet)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const SHORT_TIMEOUT = 16; // ms - single frame
+const NORMAL_TIMEOUT = 100; // ms - for normal UI operations
 
-// We need to ensure we initialize the store properly 
-// The page context in Playwright doesn't get the initialization from main.ts
-test.beforeEach(async ({ page }) => {
-  // Initialize the global store on each test page
-  await page.addInitScript(() => {
-    if (typeof window !== 'undefined') {
-      // Flag to ensure we initialize just once
-      window.__FLASHCARD_STORE_INITIALIZED = false;
-    }
-  });
-});
-
-// Wait for the store to be initialized before test begins
+// Wait for the store to be initialized
 async function waitForStoreInitialization(page) {
   await page.waitForFunction(() => {
     return window.__flashcardStore && window.__flashcardMethods;
   }, { timeout: 2000 });
 }
 
-/**
- * Test for PDF upload and processing using Claude's native PDF capabilities
- * 
- * This test:
- * 1. Mocks the file upload capabilities to handle PDFs
- * 2. Mocks the Claude API response for PDF content
- * 3. Simulates uploading a PDF file
- * 4. Verifies that flashcards are generated correctly
- */
-test('upload and process PDF document with Claude', async ({ page }) => {
-  // Skip this test for now since PDF support is not yet implemented
-  test.skip(true, 'PDF support not yet implemented');
-  
-  // Go to page and set API key
+// Helper function to create base64 mock PDF
+async function createMockPdfBase64(page) {
+  return await page.evaluate(() => {
+    // This is a minimal representation of a base64 encoded PDF
+    // In real implementation, this would be the actual PDF converted to base64
+    return 'JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PCAvTGVuZ3RoIDYgMCBSCiAgIC9GaWx0ZXIgL0ZsYXRlRGVjb2RlCj4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAw1DNSKG+rzMzLTHJOLMnMzwMA9IUO8gplbmRzdHJlYW0KZW5kb2JqCjYgMCBvYmoKICAgMzk3CmVuZG9iagozzCAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZwogICAvUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzCiAgIC9LaWRzIFszIDAgUl0KICAgL0NvdW50IDEKICAgL01lZGlhQm94IFswIDAgMzAwIDEyMF0KPj4KZW5kb2JqCjMgMCBvYmoKPDwgIC9UeXBlIC9QYWdlCiAgIC9QYXJlbnQgMiAwIFIKICAgL1Jlc291cmNlcyA8PCAvRm9udCA8PCAvRjEgNCAwIFIgPj4gPj4KICAgL0NvbnRlbnRzIDUgMCBSCj4+CmVuZG9iago0IDAgb2JqCjw8IC9UeXBlIC9Gb250CiAgIC9TdWJ0eXBlIC9UeXBlMQogICAvQmFzZUZvbnQgL1RpbWVzLVJvbWFuCj4+CmVuZG9iagoxIDAgb2JqCjw8IC9UaXRsZSAoRVNMaW50IENvbmZpZ3VyYXRpb24gRG9jdW1lbnQpCiAgIC9BdXRob3IgKFRlc3QpCiAgIC9DcmVhdG9yIChUZXN0KQo+PgplbmRvYmoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwODc5IDAwMDAwIG4gCjAwMDAwMDA1NDMgMDAwMDAgbiAKMDAwMDAwMDYzOSAwMDAwMCBuIAowMDAwMDAwNzc2IDAwMDAwIG4gCjAwMDAwMDAwMTcgMDAwMDAgbiAKMDAwMDAwMDQ5MiAwMDAwMCBuIAp0cmFpbGVyCjw8ICAvUm9vdCAxIDAgUgogICAvU2l6ZSA3Cj4+CnN0YXJ0eHJlZgo5NjkKJSVFT0YK';
+  });
+}
+
+test('PDF upload and flashcard generation', async ({ page }) => {
   await page.goto('/');
   await waitForStoreInitialization(page);
   
-  // Set API key if needed
-  if (await page.locator('.api-key-input input').isVisible()) {
-    await page.locator('.api-key-input input').fill('test-api-key-123');
-    await page.locator('.api-key-input button').click();
-  }
-  
-  // Mock file upload and base64 encoding for PDFs
-  await page.addInitScript(() => {
-    // Add helper functions to window for PDF handling
-    window.pdfFileToBase64 = async (file) => {
-      // In a real implementation, this would read the file and convert to base64
-      // For testing, we return a mock base64 string
-      return 'MOCK_PDF_BASE64_DATA';
-    };
-    
-    // Mock FileReader to handle PDFs
-    const originalFileReader = window.FileReader;
-    window.FileReader = class MockFileReader extends originalFileReader {
-      constructor() {
-        super();
-        this.onload = null;
-      }
-      
-      readAsArrayBuffer(blob) {
-        // For PDFs, return a mock array buffer
-        if (blob.name?.toLowerCase().endsWith('.pdf')) {
-          setTimeout(() => {
-            this.result = new ArrayBuffer(1024); // Mock buffer
-            if (this.onload) this.onload({ target: this });
-            this.dispatchEvent(new Event('load'));
-          }, 10);
-        } else {
-          // Use original implementation for non-PDFs
-          const originalReadAsArrayBuffer = originalFileReader.prototype.readAsArrayBuffer;
-          originalReadAsArrayBuffer.call(this, blob);
-        }
-      }
-      
-      readAsText(blob) {
-        // For PDFs, return a placeholder text
-        if (blob.name?.toLowerCase().endsWith('.pdf')) {
-          setTimeout(() => {
-            this.result = `[PDF Document: ${blob.name}]`;
-            if (this.onload) this.onload({ target: this });
-            this.dispatchEvent(new Event('load'));
-          }, 10);
-        } else {
-          // Use original for text files
-          const originalReadAsText = originalFileReader.prototype.readAsText;
-          originalReadAsText.call(this, blob);
-        }
-      }
-    };
-  });
-  
-  // Mock the Claude API response for PDF processing
+  // Mock the Claude API response for PDF documents
   await page.route('**/*', async (route) => {
     // Only intercept API calls to Claude
     if (route.request().url().includes('anthropic.com')) {
-      // Check the request body to see if it includes PDF data
-      const body = route.request().postDataJSON();
-      const hasPdfContent = body?.messages?.[0]?.content?.some(
-        item => item.type === 'image' && item.source?.media_type === 'application/pdf'
+      // Check if the request includes PDF document content
+      const requestBody = route.request().postDataJSON();
+      const isPdfRequest = requestBody?.messages?.[0]?.content?.some(
+        content => content.type === 'document' && content.source?.media_type === 'application/pdf'
       );
       
-      // Return a PDF-specific response if PDF is detected
-      if (hasPdfContent) {
+      if (isPdfRequest) {
         console.log('Intercepted PDF request to Claude API');
+        
+        // Return a successful response with flashcards in proper JSON format
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  title: 'ESLint Configuration',
+                  cards: [
+                    {
+                      question: 'What is ESLint?',
+                      answer: 'ESLint is a static code analysis tool for identifying problematic patterns in JavaScript code.'
+                    },
+                    {
+                      question: 'How are ESLint configuration files typically named?',
+                      answer: 'ESLint configuration files are typically named .eslintrc.js, .eslintrc.json, .eslintrc.yaml, or eslint.config.js (for flat config).'
+                    },
+                    {
+                      question: 'What is a flat config in ESLint?',
+                      answer: 'Flat config is a new configuration format introduced in ESLint v8.21.0 that uses a single eslint.config.js file with a simpler, more predictable configuration structure.'
+                    }
+                  ]
+                })
+              }
+            ],
+            id: 'mock-pdf-response',
+            model: 'claude-3-5-sonnet-20241022',
+            type: 'message'
+          })
+        });
+      } else {
+        // Continue with regular Claude API call
+        await route.continue();
       }
-      
-      // Return a successful response with flashcards in proper JSON format
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                title: 'ESLint Configuration Guide',
-                cards: [
-                  {
-                    question: 'What are the main configuration file types for ESLint?',
-                    answer: 'JavaScript, JSON, and YAML files.'
-                  },
-                  {
-                    question: 'What are glob patterns used for in ESLint config?',
-                    answer: 'To specify which files a configuration applies to using the "files" and "ignores" properties.'
-                  }
-                ]
-              })
-            }
-          ],
-          id: 'mock-id',
-          model: 'claude-3-5-sonnet-20241022',
-          type: 'message'
-        })
-      });
     } else {
       // Continue with the original request for non-Claude API calls
       await route.continue();
     }
   });
   
-  // Create a mock PDF file for upload
-  await page.evaluate(() => {
-    // Create a mock PDF file
-    const mockPdf = new File(
-      [new Uint8Array(10).fill(1)], // Mock binary content
-      'eslint-config.pdf',
-      { type: 'application/pdf' }
-    );
-    
-    // Create a mock drop event with the PDF file
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(mockPdf);
-    
-    // Dispatch the drop event on the upload area
-    const uploadArea = document.querySelector('.upload-area');
-    if (uploadArea) {
-      const dropEvent = new Event('drop', { bubbles: true });
-      Object.defineProperty(dropEvent, 'dataTransfer', { value: dataTransfer });
-      dropEvent.preventDefault = () => {};
-      uploadArea.dispatchEvent(dropEvent);
-    }
+  // If we see the API key form, fill it in
+  if (await page.locator('.api-key-input input').isVisible()) {
+    await page.locator('.api-key-input input').fill('test-api-key-123');
+    await page.locator('.api-key-input button').click();
+  }
+  
+  // Wait for the document uploader to be visible
+  await page.waitForSelector('.document-uploader', { timeout: NORMAL_TIMEOUT });
+  
+  // Create and upload a mock PDF file
+  // This uses Playwright's built-in file upload functionality
+  await page.setInputFiles('input[type="file"]', {
+    name: 'test-config.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('PDF content mock', 'utf8')
   });
   
-  // Verify document preview appears with PDF indicator
+  // Once the PDF is uploaded, we should see the document preview
+  // This will fail until PDF support is implemented
   await expect(page.locator('.document-preview')).toBeVisible({ timeout: NORMAL_TIMEOUT });
-  await expect(page.locator('.document-content')).toContainText('PDF Document', { timeout: NORMAL_TIMEOUT });
   
-  // Generate flashcards from the PDF
-  await page.locator('.btn-primary').click();
+  // Click the generate flashcards button
+  await page.locator('button:has-text("Generate")').click();
   
-  // Verify flashcard display appears
-  await expect(page.locator('.flashcard-display')).toBeVisible({ timeout: NORMAL_TIMEOUT });
+  // The flashcard display should appear
+  const flashcardDisplay = page.locator('.flashcard-display');
+  await expect(flashcardDisplay).toBeVisible({ timeout: NORMAL_TIMEOUT });
   
-  // Verify flashcard content
-  const cardContent = await page.locator('.card-front, .flashcard-content').first().textContent();
-  expect(cardContent?.includes('ESLint')).toBeTruthy();
+  // Verify that the ESLint-specific cards appear 
+  const cardContent = await page.locator('.card-front, .flashcard-content').textContent();
+  expect(cardContent).toContain('What is ESLint?');
+});
+
+test.skip('PDF button is visible in document uploader', async ({ page }) => {
+  // This test will be implemented once the actual PDF support is added to the UI
+  await page.goto('/');
+  await waitForStoreInitialization(page);
+  
+  // If we see the API key form, fill it in
+  if (await page.locator('.api-key-input input').isVisible()) {
+    await page.locator('.api-key-input input').fill('test-api-key-123');
+    await page.locator('.api-key-input button').click();
+  }
+  
+  // Wait for the document uploader to be visible
+  await page.waitForSelector('.document-uploader', { timeout: NORMAL_TIMEOUT });
+  
+  // Once implemented, there should be an indication that PDF files are supported
+  // For example, the dropzone text might mention PDFs
+  const uploaderText = await page.locator('.document-uploader').textContent();
+  expect(uploaderText).toContain('PDF');
 });
