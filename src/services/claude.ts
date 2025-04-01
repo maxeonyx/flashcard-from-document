@@ -31,6 +31,7 @@ export class ClaudeService {
   initialize(apiKey: string): void {
     this.client = new Anthropic({
       apiKey,
+      dangerouslyAllowBrowser: true,
     });
   }
 

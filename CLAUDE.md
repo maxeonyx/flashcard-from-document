@@ -44,7 +44,8 @@ Flashcard From Document - A static web app that allows users to upload documents
    always do ALL of the following.
 
    - `git push`
-   - `sleep 5 && gh run list`
+   - `sleep 5 && gh run list | head -5`
+   - If any more waiting is required, link the user to https://github.com/maxeonyx/flashcard-from-document/actions/workflows/static.yml
    - If failed check logs for the given run(s): `sleep 5 && gh run view <run-id> --log-failed`
    - Verify https://maxeonyx.github.io/flashcard-from-document/ with WebFetchTool
    - If successful, link the user to the working application.
@@ -102,6 +103,7 @@ Flashcard From Document - A static web app that allows users to upload documents
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.3.1 - Fixed Anthropic API browser compatibility by adding dangerouslyAllowBrowser option
 - 0.3.0 - Major refactoring: Reorganized project structure with feature-based folders, added composables, improved loading states, and accessibility
 - 0.2.2 - Fixed ESLint dependencies for GitHub Pages deployment
 - 0.2.1 - Converted application to TypeScript and modernized Vue components
