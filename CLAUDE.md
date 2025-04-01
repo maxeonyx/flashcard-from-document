@@ -9,64 +9,60 @@ Flashcard From Document - A static web app that allows users to upload documents
 - Local storage for API keys and flashcard sets
 - Responsive design for all device types
 
+## Development principles
+
+1. Create a clean, functional and minimal app.
+2. Always prefer quality. Always improve existing code. Tests make this low-risk.
+3. Claude will manage the whole development process.
+
 ## Development Process (STRICT REQUIREMENTS)
 
 1. **Feature Development**
-   - Create a feature branch from main
-   - Implement the new feature or fix
-   - Write corresponding tests for the new functionality
+   - Implement the feature in the simplest and cleanest way.
+   - Implement a simple and clean test.
+   - ALWAYS remove old code if it is no longer required.
 
 2. **Testing Requirements**
    - ALL code changes MUST have corresponding tests
-   - Run the full test suite: `npm run test`
+   - Run the full test suite with `npm run test` prior to every commit
    - Tests MUST pass before any commit
-   - Visual inspection in browser is also required: `npm run dev`
 
 3. **Pre-Commit Checklist**
-   - Run type checking: `npm run typecheck`
-   - Run linting: `npm run lint`
-   - Run tests: `npm run test`
+   BEFORE git commit, always do ALL of the following:
+
+   - `npm run typecheck && npm run lint && npm run test`
    - Update version in package.json (increment according to semver)
      - Major: Breaking changes
      - Minor: New features
      - Patch: Bug fixes
    - Display version is shown to users, so this is REQUIRED
 
-4. **Committing Code**
-   - Use descriptive, present-tense commit messages
-   - Reference related issue numbers when applicable
-   - Include scope of changes (e.g., "feat(upload): add drag-and-drop support")
+   There are no commit message requirements.
 
 5. **Deployment Process**
-   - Push to GitHub to trigger the deployment workflow
-   - ALWAYS monitor deployment status: `gh run list`
-   - Check detailed logs if deployment fails: `gh run view <run-id> --log`
-   - For specific failure details: `gh run view <run-id> --log-failed`
-   - Verify the deployed application works in production
-   - If issues are found, fix and re-deploy immediately
+   The app is deployed via GitHub workflows to GitHub pages. When deploying,
+   always do ALL of the following.
+
+   - `git push`
+   - `sleep 5 && gh run list`
+   - If failed check logs for the given run(s): `sleep 5 && gh run view <run-id> --log-failed`
+   - Verify https://maxeonyx.github.io/flashcard-from-document/ with WebFetchTool
+   - If successful, link the user to the working application.
    
 6. **Deployment Configuration**
-   - This project uses two GitHub Actions workflows:
-     - `deploy.yml` - Our custom deployment workflow
-     - `static.yml` - GitHub's standard Pages workflow (configured for our Vue.js app)
+   - `static.yml` - GitHub's standard Pages workflow (configured for our Vue.js app)
    - GitHub Pages must be enabled in repository Settings > Pages
      - Source should be set to "GitHub Actions"
-   
-7. **Common Deployment Issues**
-   - GitHub Actions version mismatches: Ensure all actions use latest compatible versions
-   - Missing dependencies: Ensure Playwright browsers are installed with `npx playwright install --with-deps`
-   - Test failures: Tests must pass for deployment to succeed
-   - Build errors: Check logs for specific build failures
-   - Permission issues: Ensure proper GitHub token permissions are configured
+
+## Tech stack
+
+- Vue.js
+- Anthropic SDK
+- TypeScript
+- GitHub actions
+- GitHub pages
 
 ## Commands
-
-### Development Commands
-- `npm run dev` - Start development server
-- `npm run test` - Run headless browser tests
-- `npm run build` - Build production version
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
 
 ### Deployment Monitoring Commands
 - `gh run list` - Check GitHub Actions workflow status
@@ -76,22 +72,14 @@ Flashcard From Document - A static web app that allows users to upload documents
 - `gh run rerun <run-id>` - Rerun a failed workflow
 
 ## API Considerations
-- Using Anthropic API directly from browser
+- Using Anthropic API directly from browser 
 - Secure API key handling in localStorage (never stored on server)
 - Implement rate limiting to prevent excessive API usage
 - Comprehensive error handling and user feedback
 
 ## Key Project Files
 
-### Configuration Files
-- `package.json` - Project dependencies and scripts
-- `tsconfig.json` - TypeScript configuration
-- `playwright.config.ts` - Testing configuration
-- `vue.config.js` - Vue.js configuration
-- `.github/workflows/deploy.yml` - Our custom GitHub Actions deployment workflow
 - `.github/workflows/static.yml` - GitHub-generated workflow (configured for our Vue.js app)
-
-### Source Code
 - `src/main.ts` - Application entry point
 - `src/App.vue` - Root Vue component
 - `src/components/` - UI components
@@ -99,53 +87,14 @@ Flashcard From Document - A static web app that allows users to upload documents
 - `src/services/claude.ts` - Claude API integration
 - `src/stores/flashcards.ts` - State management for flashcards
 - `src/types/index.ts` - TypeScript type definitions
-
-### Testing
 - `tests/app.spec.ts` - Application tests
-
-### Public Assets
 - `public/index.html` - HTML template
 - `public/favicon.ico` - Site favicon
 
-## Complete File Structure
-```
-/
-├── .github/                # GitHub configuration
-│   └── workflows/          # GitHub Actions workflows
-│       ├── deploy.yml      # Our custom deployment workflow
-│       └── static.yml      # GitHub-generated workflow
-├── public/                 # Static assets
-│   ├── favicon.ico         # Site favicon
-│   └── index.html          # HTML template
-├── src/
-│   ├── assets/             # Image assets
-│   │   └── logo.png        # Vue logo
-│   ├── components/         # UI components
-│   │   └── HelloWorld.vue  # Example component
-│   ├── services/           # API and service layer
-│   │   └── claude.ts       # Claude API integration
-│   ├── stores/             # State management
-│   │   └── flashcards.ts   # Flashcard state store
-│   ├── types/              # TypeScript types
-│   │   └── index.ts        # Type definitions
-│   ├── App.vue             # Root component
-│   └── main.ts             # Entry point
-├── tests/                  # Playwright tests
-│   └── app.spec.ts         # Application tests
-├── .env.example            # Environment variables template
-├── .gitignore              # Git ignore patterns
-├── CLAUDE.md               # Project guidelines (this file)
-├── README.md               # Project overview
-├── babel.config.js         # Babel configuration
-├── jsconfig.json           # JavaScript config
-├── package.json            # Dependencies and scripts
-├── playwright.config.ts    # Testing configuration
-├── tsconfig.json           # TypeScript configuration
-├── tsconfig.node.json      # Node-specific TS config
-└── vue.config.js           # Vue configuration
-```
-
 ## Version History
+
+Always update both this file `CLAUDE.md` AND `package.json`.
+
 - 0.1.5 - Updated GitHub Pages static workflow with build and test steps
 - 0.1.4 - Added GitHub Pages configuration requirements to documentation
 - 0.1.3 - Added Playwright browser installation to CI/CD workflow

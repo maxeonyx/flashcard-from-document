@@ -1,20 +1,19 @@
 import { defineStore } from 'pinia';
-import type { FlashcardSet } from '../types';
 
 export const useFlashcardStore = defineStore('flashcards', {
   state: () => ({
     apiKey: localStorage.getItem('claude-api-key') || '',
-    flashcardSets: JSON.parse(localStorage.getItem('flashcard-sets') || '[]') as FlashcardSet[],
+    flashcardSets: JSON.parse(localStorage.getItem('flashcard-sets') || '[]'),
   }),
 
   actions: {
-    setApiKey(key: string) {
+    setApiKey(key) {
       this.apiKey = key;
       localStorage.setItem('claude-api-key', key);
     },
 
-    addFlashcardSet(set: Omit<FlashcardSet, 'id' | 'createdAt'>) {
-      const newSet: FlashcardSet = {
+    addFlashcardSet(set) {
+      const newSet = {
         ...set,
         id: crypto.randomUUID(),
         createdAt: new Date(),
@@ -24,7 +23,7 @@ export const useFlashcardStore = defineStore('flashcards', {
       return newSet;
     },
 
-    deleteFlashcardSet(id: string) {
+    deleteFlashcardSet(id) {
       this.flashcardSets = this.flashcardSets.filter(set => set.id !== id);
       this.saveToLocalStorage();
     },

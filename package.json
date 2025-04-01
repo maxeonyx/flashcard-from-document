@@ -1,21 +1,22 @@
 {
   "name": "flashcard-from-document",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "dev": "vue-cli-service serve",
+    "prebuild": "vue-cli-service lint",
     "test": "playwright test",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "core-js": "^3.8.3",
+    "pinia": "^3.0.1",
     "vue": "^3.2.13"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
     "@playwright/test": "^1.51.1",
@@ -24,7 +25,6 @@
     "@vue/cli-service": "~5.0.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
-    "pinia": "^3.0.1",
     "typescript": "^5.8.2",
     "vue-tsc": "^2.2.8"
   },
@@ -40,7 +40,8 @@
     "parserOptions": {
       "parser": "@babel/eslint-parser"
     },
-    "rules": {}
+    "rules": {},
+    "ignorePatterns": ["tests/**/*"]
   },
   "browserslist": [
     "> 1%",

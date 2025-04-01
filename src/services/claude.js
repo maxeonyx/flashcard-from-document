@@ -1,29 +1,20 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-export interface FlashcardGenerationResult {
-  cards: Array<{
-    question: string;
-    answer: string;
-  }>;
-  error?: string;
-}
-
 export class ClaudeService {
-  private client: Anthropic | null = null;
-  
-  constructor(apiKey?: string) {
+  constructor(apiKey) {
+    this.client = null;
     if (apiKey) {
       this.initialize(apiKey);
     }
   }
 
-  initialize(apiKey: string): void {
+  initialize(apiKey) {
     this.client = new Anthropic({
       apiKey,
     });
   }
 
-  async generateFlashcards(documentText: string): Promise<FlashcardGenerationResult> {
+  async generateFlashcards(documentText) {
     if (!this.client) {
       return {
         cards: [],
