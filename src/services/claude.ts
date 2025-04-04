@@ -11,6 +11,12 @@ export interface FlashcardGenerationResult {
   error?: string;
 }
 
+export interface DocumentUpload {
+  text?: string;
+  pdfBase64?: string;
+  fileName: string;
+}
+
 const MODEL = 'claude-3-5-sonnet-20241022';
 const MAX_TOKENS = 8000;
 
@@ -37,9 +43,9 @@ export class ClaudeService {
   }
 
   /**
-   * Generate flashcards from document text
+   * Generate flashcards from document text or PDF
    */
-  async generateFlashcards(documentText: string): Promise<FlashcardGenerationResult> {
+  async generateFlashcards(document: DocumentUpload): Promise<FlashcardGenerationResult> {
     if (!this.client) {
       return {
         title: '',
@@ -49,13 +55,25 @@ export class ClaudeService {
     }
 
     try {
-      const response = await this.client.messages.create({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        messages: [
-          {
-            role: 'user',
-            content: `Create flashcards from this document text. Extract the key concepts and create question-answer pairs.
+      // Prepare message content - this will vary based on input type
+      const messageContent: Array<Anthropic.ContentBlock> = [];
+      
+      // If we have a PDF, add it as a document content block
+      if (document.pdfBase64) {
+        messageContent.push({
+          type: 'document',
+          source: {
+            type: 'base64',
+            media_type: 'application/pdf',
+            data: document.pdfBase64
+          }
+        });
+      }
+      
+      // Add the text prompt - always added after PDF content if present
+      messageContent.push({
+        type: 'text',
+        text: `Create flashcards from this ${document.pdfBase64 ? 'PDF document' : 'document text'}. Extract the key concepts and create question-answer pairs.
 
 IMPORTANT: Your entire response must be valid JSON that I can parse with JSON.parse(). Respond with ONLY a JSON object containing a "title" string field and a "cards" array field that contains objects with "question" and "answer" fields like this:
 
@@ -73,10 +91,18 @@ IMPORTANT: Your entire response must be valid JSON that I can parse with JSON.pa
   ]
 }
 
-The title should be concise (3-6 words) and descriptive of the document's content. Do not include any explanations, markdown formatting, or non-JSON text in your response.
-
-Document text:
-${documentText}`,
+The title should be concise (3-6 words) and descriptive of the document's content. Do not include any explanations, markdown formatting, or non-JSON text in your response.${
+          document.text && !document.pdfBase64 ? `\n\nDocument text:\n${document.text}` : ''
+        }`
+      });
+      
+      const response = await this.client.messages.create({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        messages: [
+          {
+            role: 'user',
+            content: messageContent,
           },
         ],
       });

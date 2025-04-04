@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { ClaudeService } from '../services/claude';
+import { ClaudeService, type DocumentUpload } from '../services/claude';
 import { useFlashcards } from './useFlashcards';
 import type { FlashcardSet } from '../types';
 
@@ -15,7 +15,8 @@ export function useFlashcardGeneration() {
   async function generateFlashcards(
     apiKey: string, 
     documentContent: string, 
-    fileName: string
+    fileName: string,
+    isPdf = false
   ): Promise<FlashcardSet | null> {
     if (!apiKey || !documentContent) {
       error.value = !apiKey 
@@ -29,7 +30,14 @@ export function useFlashcardGeneration() {
     
     try {
       const claudeService = new ClaudeService(apiKey);
-      const result = await claudeService.generateFlashcards(documentContent);
+      
+      // Create document upload object based on file type
+      const documentUpload: DocumentUpload = {
+        fileName: fileName,
+        ...(isPdf ? { pdfBase64: documentContent } : { text: documentContent })
+      };
+      
+      const result = await claudeService.generateFlashcards(documentUpload);
       
       if (result.error) {
         error.value = result.error;

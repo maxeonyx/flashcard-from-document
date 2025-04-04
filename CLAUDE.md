@@ -174,6 +174,7 @@ The project follows a feature-based architecture with composables for reusable l
 
 Always update both this file `CLAUDE.md` AND `package.json`.
 
+- 0.5.3 - Added PDF support using Anthropic API's native PDF handling capability
 - 0.5.2 - Completely refactored state management to use Pinia store as single source of truth, fully fixing reactivity issues
 - 0.5.1 - Initial fix for reactivity issue with flashcard sets not appearing until page reload
 - 0.5.0 - Implemented key UI improvements: added bin icon for deletion, added flashcard editing, and API key onboarding flow

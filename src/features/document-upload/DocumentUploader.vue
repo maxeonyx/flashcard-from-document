@@ -10,6 +10,7 @@
     >
       <div v-if="!documentContent">
         <p>Drag and drop your document here</p>
+        <p class="supported-formats">Supported formats: TXT, MD, PDF</p>
         <p>OR</p>
         <input 
           type="file" 
@@ -22,9 +23,21 @@
       </div>
       <div v-else class="document-preview">
         <h3>{{ fileName }}</h3>
-        <p class="document-stats">{{ formattedStats }}</p>
+        <p class="document-stats">
+          <template v-if="fileName.toLowerCase().endsWith('.pdf')">
+            PDF Document
+          </template>
+          <template v-else>
+            {{ formattedStats }}
+          </template>
+        </p>
         <div class="document-content">
-          {{ documentPreview }}
+          <template v-if="fileName.toLowerCase().endsWith('.pdf')">
+            [PDF Document] {{ fileName }}
+          </template>
+          <template v-else>
+            {{ documentPreview }}
+          </template>
         </div>
         <div class="actions">
           <button @click="clearDocument" class="btn btn-secondary">Clear</button>
@@ -70,7 +83,7 @@ const {
   unhighlightDrop, 
   handleDrop, 
   handleFileSelect, 
-  clearDocument 
+  clearDocument
 } = useDocumentUpload();
 
 const { 
@@ -86,10 +99,14 @@ const canGenerate = computed(() => {
 
 // Handler for the generate button
 async function onGenerateFlashcards(): Promise<void> {
+  // Detect if it's a PDF by checking the file extension
+  const isPdf = fileName.value.toLowerCase().endsWith('.pdf');
+  
   const newSet = await generateFlashcards(
     apiKey.value, 
     documentContent.value, 
-    fileName.value
+    fileName.value,
+    isPdf
   );
   
   if (newSet) {
@@ -148,6 +165,13 @@ async function onGenerateFlashcards(): Promise<void> {
 .document-stats {
   color: #666;
   font-size: 14px;
+}
+
+.supported-formats {
+  color: #666;
+  font-size: 14px;
+  margin: 5px 0;
+  font-weight: bold;
 }
 
 .document-content {

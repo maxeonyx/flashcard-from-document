@@ -1,0 +1,37 @@
+{
+  "title": "Claude PDF Support",
+  "cards": [
+    {
+      "question": "What are the PDF requirements for Claude?",
+      "answer": "Maximum request size: 32MB\nMaximum pages per request: 100\nFormat: Standard PDF (no passwords/encryption)\nNote: Limits apply to entire request payload including other content"
+    },
+    {
+      "question": "What models support PDF functionality?",
+      "answer": "- Claude 3.7 Sonnet\n- Both Claude 3.5 Sonnet models\n- Claude 3.5 Haiku\nAvailable via direct API access and Google Vertex AI"
+    },
+    {
+      "question": "What are the two ways to provide PDFs to Claude?",
+      "answer": "1. As a base64-encoded PDF in document content blocks\n2. As a URL reference to a PDF hosted online"
+    },
+    {
+      "question": "How does Claude process PDFs internally?",
+      "answer": "1. Extracts document contents by converting each page to an image\n2. Extracts text from each page\n3. Analyzes both text and images to understand the document\n4. Responds by referencing both textual and visual content"
+    },
+    {
+      "question": "How are PDF costs calculated?",
+      "answer": "Two components:\n1. Text tokens: 1,500-3,000 tokens per page depending on content density\n2. Image tokens: Each page is converted to an image and charged according to image pricing\nStandard API pricing applies with no additional PDF fees"
+    },
+    {
+      "question": "What are the best practices for optimal PDF processing?",
+      "answer": "- Place PDFs before text in requests\n- Use standard fonts\n- Ensure text is clear and legible\n- Rotate pages to proper orientation\n- Use logical page numbers in prompts\n- Split large PDFs into chunks when needed\n- Enable prompt caching for repeated analysis"
+    },
+    {
+      "question": "How can you scale PDF processing for high volume?",
+      "answer": "1. Use prompt caching to improve performance on repeated queries\n2. Use the Message Batches API for processing multiple documents\n3. Split large documents into smaller chunks"
+    },
+    {
+      "question": "What integration features can improve PDF processing?",
+      "answer": "- Prompt caching: For improved performance on repeated analysis\n- Batch processing: For high-volume document processing\n- Tool use: To extract specific information for use as tool inputs"
+    }
+  ]
+}

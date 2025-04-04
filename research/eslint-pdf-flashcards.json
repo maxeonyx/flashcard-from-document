@@ -1,0 +1,41 @@
+{
+  "title": "ESLint Configuration Files",
+  "cards": [
+    {
+      "question": "What are the valid ESLint configuration file names?",
+      "answer": "eslint.config.js, eslint.config.mjs, eslint.config.cjs, eslint.config.ts, eslint.config.mts, and eslint.config.cts (last three require additional setup)"
+    },
+    {
+      "question": "What is the basic structure of an ESLint configuration object?",
+      "answer": "A configuration object contains settings like rules, files patterns to apply to, ignores patterns, plugins, languageOptions, and linterOptions. It should be placed in the root directory and export an array of configuration objects."
+    },
+    {
+      "question": "How does the 'files' and 'ignores' pattern matching work in ESLint configuration?",
+      "answer": "files specifies which files the configuration applies to using glob patterns. ignores specifies which files to exclude. When used together, they determine the scope of files the configuration object applies to. By default, ESLint matches **./*.js, **./*.cjs, and **./*.mjs files."
+    },
+    {
+      "question": "What is the difference between global and non-global ignores in ESLint?",
+      "answer": "Global ignores (when ignores is used without other keys) apply to every configuration object. Non-global ignores (when used with other properties) only apply to the specific configuration object where they are defined. Global ignores can match directories while non-global ignores only match files."
+    },
+    {
+      "question": "How do you configure rules in ESLint?",
+      "answer": "Rules are configured in the rules object of a configuration object. You can specify a rule's severity as a string ('error', 'warn', 'off') or as an array where the first item is severity and subsequent items are rule options."
+    },
+    {
+      "question": "What is the 'extends' property used for in ESLint configuration?",
+      "answer": "The extends property allows configuration objects to inherit settings from other configurations. It can reference plugin configurations, configuration objects, or configuration arrays. This enables reuse and sharing of configurations."
+    },
+    {
+      "question": "How does ESLint handle multiple matching configuration objects?",
+      "answer": "When multiple configuration objects match a file, they are merged with later objects overriding previous objects when there are conflicts. This allows for cascading configurations with more specific rules taking precedence."
+    },
+    {
+      "question": "What is the configuration file resolution order in ESLint?",
+      "answer": "ESLint searches for configuration files in this order: 1. eslint.config.js, 2. eslint.config.mjs, 3. eslint.config.cjs, 4. eslint.config.ts, 5. eslint.config.mts, 6. eslint.config.cts. JavaScript files take precedence over TypeScript files."
+    },
+    {
+      "question": "What is the purpose of the 'settings' object in ESLint configuration?",
+      "answer": "The settings object allows you to add shared settings that are supplied to every rule. Plugins can use this to specify information that should be shared across all of their rules, helping maintain consistent configuration across custom rules."
+    }
+  ]
+}

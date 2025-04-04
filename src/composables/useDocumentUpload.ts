@@ -6,6 +6,13 @@ export interface DocumentStats {
   charCount: number;
 }
 
+// Define supported file types
+export enum FileType {
+  TEXT = 'text',
+  PDF = 'pdf',
+  UNSUPPORTED = 'unsupported'
+}
+
 /**
  * Composable for document upload and processing
  */
@@ -62,12 +69,61 @@ export function useDocumentUpload() {
     }
   }
   
+  async function handlePdfFile(file: File): Promise<ApiResponse<string>> {
+    try {
+      // Check file size - 10MB limit for PDFs
+      const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+      if (file.size > MAX_PDF_SIZE) {
+        error.value = `PDF file is too large (${(file.size / (1024 * 1024)).toFixed(2)}MB). Maximum size is 10MB.`;
+        return { error: error.value, loading: false };
+      }
+      
+      // Convert PDF to base64 for Claude API
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = btoa(
+        new Uint8Array(arrayBuffer)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      
+      // Store the original filename
+      fileName.value = file.name;
+      
+      // Store base64 data in documentContent
+      documentContent.value = base64;
+      
+      // Clear any previous errors
+      error.value = '';
+      
+      return { 
+        data: base64, 
+        loading: false 
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      error.value = `Error processing PDF file: ${message}`;
+      return { error: error.value, loading: false };
+    }
+  }
+  
+  function getFileType(file: File): FileType {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    
+    if (extension === 'txt' || extension === 'md') {
+      return FileType.TEXT;
+    } else if (extension === 'pdf') {
+      return FileType.PDF;
+    }
+    
+    return FileType.UNSUPPORTED;
+  }
+  
   function handleDrop(e: DragEvent): void {
     unhighlightDrop();
     
     if (!e.dataTransfer?.files.length) return;
     
     const file = e.dataTransfer.files[0];
+    // File type detection happens in processFile
     processFile(file);
   }
   
@@ -76,18 +132,22 @@ export function useDocumentUpload() {
     if (!target.files?.length) return;
     
     const file = target.files[0];
+    // File type detection happens in processFile
     processFile(file);
   }
   
-  function processFile(file: File): void {
-    const fileType = file.name.split('.').pop()?.toLowerCase();
+  async function processFile(file: File): Promise<void> {
+    const fileType = getFileType(file);
     
-    if (fileType === 'txt' || fileType === 'md') {
-      handleTextFile(file);
-    } else if (fileType === 'pdf') {
-      error.value = "PDF parsing is not supported in this version. Please upload a text file.";
-    } else {
-      error.value = "Unsupported file format. Please upload a .txt or .md file.";
+    switch (fileType) {
+      case FileType.TEXT:
+        await handleTextFile(file);
+        break;
+      case FileType.PDF:
+        await handlePdfFile(file);
+        break;
+      default:
+        error.value = "Unsupported file format. Please upload a .txt, .md, or .pdf file.";
     }
   }
   
@@ -109,9 +169,11 @@ export function useDocumentUpload() {
     highlightDrop,
     unhighlightDrop,
     handleTextFile,
+    handlePdfFile,
     handleDrop,
     handleFileSelect,
     processFile,
-    clearDocument
+    clearDocument,
+    getFileType
   };
 }

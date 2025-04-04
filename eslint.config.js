@@ -40,6 +40,6 @@ export default [
   },
   // Ignore patterns
   {
-    ignores: ['dist/**', 'node_modules/**', 'playwright-report/**', 'test-results/**']
+    ignores: ['dist/**', 'node_modules/**', 'playwright-report/**', 'test-results/**', 'research/**']
   }
 ];

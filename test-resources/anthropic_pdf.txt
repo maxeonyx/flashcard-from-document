@@ -1,0 +1,384 @@
+
+Anthropic home pagelight logo
+English
+
+Search...
+Ctrl K
+Research
+News
+Go to claude.ai
+
+Welcome
+User Guides
+API Reference
+Prompt Library
+Release Notes
+Developer Console
+Developer Discord
+Support
+Get started
+Overview
+Initial setup
+Intro to Claude
+Learn about Claude
+Use cases
+Models & pricing
+Security and compliance
+Build with Claude
+Define success criteria
+Develop test cases
+Context windows
+Vision
+Prompt engineering
+Extended thinking
+Multilingual support
+Tool use (function calling)
+Prompt caching
+PDF support
+Citations
+Token counting
+Batch processing
+Embeddings
+Agents and tools
+Claude Code
+Computer use (beta)
+Model Context Protocol (MCP)
+Google Sheets add-on
+Test and evaluate
+Strengthen guardrails
+Using the Evaluation Tool
+Administration
+Admin API
+Resources
+Glossary
+Model deprecations
+System status
+Claude 3 model card
+Claude 3.7 system card
+Anthropic Cookbook
+Anthropic Courses
+API features
+Legal center
+Anthropic Privacy Policy
+Build with Claude
+PDF support
+Process PDFs with Claude. Extract text, analyze charts, and understand visual content from your documents.
+
+You can now ask Claude about any text, pictures, charts, and tables in PDFs you provide. Some sample use cases:
+
+Analyzing financial reports and understanding charts/tables
+Extracting key information from legal documents
+Translation assistance for documents
+Converting document information into structured formats
+​
+Before you begin
+​
+Check PDF requirements
+Claude works with any standard PDF. However, you should ensure your request size meet these requirements when using PDF support:
+
+Requirement	Limit
+Maximum request size	32MB
+Maximum pages per request	100
+Format	Standard PDF (no passwords/encryption)
+Please note that both limits are on the entire request payload, including any other content sent alongside PDFs.
+
+Since PDF support relies on Claude’s vision capabilities, it is subject to the same limitations and considerations as other vision tasks.
+
+​
+Supported platforms and models
+PDF support is currently available on Claude 3.7 Sonnet (claude-3-7-sonnet-20250219), both Claude 3.5 Sonnet models (claude-3-5-sonnet-20241022, claude-3-5-sonnet-20240620), and Claude 3.5 Haiku (claude-3-5-haiku-20241022) via direct API access and Google Vertex AI. This functionality will be supported on Amazon Bedrock soon.
+
+​
+Process PDFs with Claude
+​
+Send your first PDF request
+Let’s start with a simple example using the Messages API. You can provide PDFs to Claude in two ways:
+
+As a base64-encoded PDF in document content blocks
+As a URL reference to a PDF hosted online
+​
+Option 1: URL-based PDF document
+The simplest approach is to reference a PDF directly from a URL:
+
+
+Shell
+
+Python
+
+TypeScript
+
+Java
+
+ curl https://api.anthropic.com/v1/messages \
+   -H "content-type: application/json" \
+   -H "x-api-key: $ANTHROPIC_API_KEY" \
+   -H "anthropic-version: 2023-06-01" \
+   -d '{
+     "model": "claude-3-7-sonnet-20250219",
+     "max_tokens": 1024,
+     "messages": [{
+         "role": "user",
+         "content": [{
+             "type": "document",
+             "source": {
+                 "type": "url",
+                 "url": "https://assets.anthropic.com/m/1cd9d098ac3e6467/original/Claude-3-Model-Card-October-Addendum.pdf"
+             }
+         },
+         {
+             "type": "text",
+             "text": "What are the key findings in this document?"
+         }]
+     }]
+ }'
+​
+Option 2: Base64-encoded PDF document
+If you need to send PDFs from your local system or when a URL isn’t available:
+
+
+Shell
+
+Python
+
+TypeScript
+
+Java
+
+# Method 1: Fetch and encode a remote PDF
+curl -s "https://assets.anthropic.com/m/1cd9d098ac3e6467/original/Claude-3-Model-Card-October-Addendum.pdf" | base64 | tr -d '\n' > pdf_base64.txt
+
+# Method 2: Encode a local PDF file
+# base64 document.pdf | tr -d '\n' > pdf_base64.txt
+
+# Create a JSON request file using the pdf_base64.txt content
+jq -n --rawfile PDF_BASE64 pdf_base64.txt '{
+    "model": "claude-3-7-sonnet-20250219",
+    "max_tokens": 1024,
+    "messages": [{
+        "role": "user",
+        "content": [{
+            "type": "document",
+            "source": {
+                "type": "base64",
+                "media_type": "application/pdf",
+                "data": $PDF_BASE64
+            }
+        },
+        {
+            "type": "text",
+            "text": "What are the key findings in this document?"
+        }]
+    }]
+}' > request.json
+
+# Send the API request using the JSON file
+curl https://api.anthropic.com/v1/messages \
+  -H "content-type: application/json" \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -d @request.json
+​
+How PDF support works
+When you send a PDF to Claude, the following steps occur:
+
+1
+The system extracts the contents of the document.
+
+The system converts each page of the document into an image.
+The text from each page is extracted and provided alongside each page’s image.
+2
+Claude analyzes both the text and images to better understand the document.
+
+Documents are provided as a combination of text and images for analysis.
+This allows users to ask for insights on visual elements of a PDF, such as charts, diagrams, and other non-textual content.
+3
+Claude responds, referencing the PDF's contents if relevant.
+
+Claude can reference both textual and visual content when it responds. You can further improve performance by integrating PDF support with:
+
+Prompt caching: To improve performance for repeated analysis.
+Batch processing: For high-volume document processing.
+Tool use: To extract specific information from documents for use as tool inputs.
+​
+Estimate your costs
+The token count of a PDF file depends on the total text extracted from the document as well as the number of pages:
+
+Text token costs: Each page typically uses 1,500-3,000 tokens per page depending on content density. Standard API pricing applies with no additional PDF fees.
+Image token costs: Since each page is converted into an image, the same image-based cost calculations are applied.
+You can use token counting to estimate costs for your specific PDFs.
+
+​
+Optimize PDF processing
+​
+Improve performance
+Follow these best practices for optimal results:
+
+Place PDFs before text in your requests
+Use standard fonts
+Ensure text is clear and legible
+Rotate pages to proper upright orientation
+Use logical page numbers (from PDF viewer) in prompts
+Split large PDFs into chunks when needed
+Enable prompt caching for repeated analysis
+​
+Scale your implementation
+For high-volume processing, consider these approaches:
+
+​
+Use prompt caching
+Cache PDFs to improve performance on repeated queries:
+
+
+Shell
+
+Python
+
+TypeScript
+
+Java
+
+# Create a JSON request file using the pdf_base64.txt content
+jq -n --rawfile PDF_BASE64 pdf_base64.txt '{
+    "model": "claude-3-7-sonnet-20250219",
+    "max_tokens": 1024,
+    "messages": [{
+        "role": "user",
+        "content": [{
+            "type": "document",
+            "source": {
+                "type": "base64",
+                "media_type": "application/pdf",
+                "data": $PDF_BASE64
+            },
+            "cache_control": {
+              "type": "ephemeral"
+            }
+        },
+        {
+            "type": "text",
+            "text": "Which model has the highest human preference win rates across each use-case?"
+        }]
+    }]
+}' > request.json
+
+# Then make the API call using the JSON file
+curl https://api.anthropic.com/v1/messages \
+  -H "content-type: application/json" \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -d @request.json
+​
+Process document batches
+Use the Message Batches API for high-volume workflows:
+
+
+Shell
+
+Python
+
+TypeScript
+
+Java
+
+# Create a JSON request file using the pdf_base64.txt content
+jq -n --rawfile PDF_BASE64 pdf_base64.txt '
+{
+  "requests": [
+      {
+          "custom_id": "my-first-request",
+          "params": {
+              "model": "claude-3-7-sonnet-20250219",
+              "max_tokens": 1024,
+              "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "document",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "application/pdf",
+                                "data": $PDF_BASE64
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": "Which model has the highest human preference win rates across each use-case?"
+                        }
+                    ]
+                }
+              ]
+          }
+      },
+      {
+          "custom_id": "my-second-request",
+          "params": {
+              "model": "claude-3-7-sonnet-20250219",
+              "max_tokens": 1024,
+              "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "document",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "application/pdf",
+                                "data": $PDF_BASE64
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": "Extract 5 key insights from this document."
+                        }
+                    ]
+                }
+              ]
+          }
+      }
+  ]
+}
+' > request.json
+
+# Then make the API call using the JSON file
+curl https://api.anthropic.com/v1/messages/batches \
+  -H "content-type: application/json" \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -d @request.json
+​
+Next steps
+Try PDF examples
+Explore practical examples of PDF processing in our cookbook recipe.
+
+View API reference
+See complete API documentation for PDF support.
+
+Was this page helpful?
+
+
+Yes
+
+No
+Prompt caching
+Citations
+x
+linkedin
+On this page
+Before you begin
+Check PDF requirements
+Supported platforms and models
+Process PDFs with Claude
+Send your first PDF request
+Option 1: URL-based PDF document
+Option 2: Base64-encoded PDF document
+How PDF support works
+Estimate your costs
+Optimize PDF processing
+Improve performance
+Scale your implementation
+Use prompt caching
+Process document batches
+Next steps
+
+Ask AI
